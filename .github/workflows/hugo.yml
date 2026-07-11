@@ -1,0 +1,37 @@
+name: Deploy Hugo site to Pages
+
+on:
+  push:
+    branches: ["main"]        # 当 main 分支有推送时触发
+  workflow_dispatch:          # 允许手动触发
+
+# 设置权限（用于写入 gh-pages 分支）
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 源码
+        uses: actions/checkout@v4
+        with:
+          submodules: true       # 同步主题子模块
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest' # 或指定版本如 '0.121.2'
+          extended: true         # 如果主题要求 Extended 版
+
+      - name: Build
+        run: hugo --minify      # 生成静态文件到 public/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages   # 部署到 gh-pages 分支
+          force_orphan: true         # 保持分支历史干净（可选）

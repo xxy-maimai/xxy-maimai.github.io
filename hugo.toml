@@ -2,3 +2,19 @@ baseURL = 'https://xxy-maimai.github.io/'
 locale = 'zh-cn'
 title = 'XxyBlog'
 theme = 'PaperMod'
+
+[params]
+ homeInfoParams
+ Title = "屑小鱼的个人博客"
+ 
+ socialIcons = [
+    {name = "bilibili", url = "https://space.bilibili.com/2127510248}
+    {name = "github", url = "https://github.com/xxy-maimai"}
+ ]
+ fuseOpts.isCaseSensitive = false
+ ShowReadingTime = true
+ ShowWordCount = true
+[[menu.main]]
+ identifier = "posts"
+ name = "文章"
+ url = "/posts/"

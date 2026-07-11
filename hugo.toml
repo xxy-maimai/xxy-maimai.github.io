@@ -4,7 +4,7 @@ title = 'XxyBlog'
 theme = 'PaperMod'
 
 [params]
- homeInfoParams
+ homeInfoParams:
  Title = "屑小鱼的个人博客"
  
  socialIcons = [

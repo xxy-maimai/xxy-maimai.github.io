@@ -19,3 +19,15 @@ theme = 'PaperMod'
  identifier = "posts"
  name = "文章"
  url = "/posts/"
+
+ [params]
+        math = true
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['$$', '$$']]
+          inline = [['$', '$']]

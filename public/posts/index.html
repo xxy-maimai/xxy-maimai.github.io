@@ -10,7 +10,7 @@
 <meta name="description" content="Posts - XxyBlog">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3b5a79576b0e09c020720393dd24c11b0de6cce9ccaed23dcffc8e7d9533ce2d.css" integrity="sha256-O1p5V2sOCcAgcgOT3STBGw3mzOnMrtI9z/yOfZUzzi0=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -66,6 +66,26 @@
     }
 
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js" integrity="sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -110,6 +130,27 @@
     Posts
   </h1>
 </header>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">带空气阻力下落运动v-t关系式推导
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>哎。心酸。本来在我朋友的博客上写过了一次这个东西。结果经历一周访问不了他也不修。
+但是我居然™的从ai聊天记录里翻出来了这篇。可惜的是还有两篇找不到。我还得自己写一遍。不过那两篇一个是高考题。一个是未解决的问题。无所吊谓说是。
+正文：
+我们受力分析： $$mg-f=ma$$ 将$f=\frac{1}{2}\rho Sv^2$代入，并且写为微分形式： $$\frac{1}{m}(mg-\frac{1}{2}\rho Sv^2) = \frac{dv}{dt}$$ 分离变量： $$dt=\frac{m}{mg-\frac{1}{2}\rho Sv^2}\cdot dv$$ 积分： $$\int dt=\int \frac{m}{mg-\frac{1}{2}\rho Sv^2} dv$$ 接下来处理积分问题。 $$\int \frac{m}{mg-\frac{1}{2}\rho Sv^2}dv=m\int\frac{1}{mg-\frac{1}{2}\rho Sv^2}dv$$ 我们研究如下形式的积分： $$\int \frac{1}{a-bv^2}dv=\int\left(\frac{A}{\sqrt{a}&#43;\sqrt{b}v}&#43;\frac{B}{\sqrt{a}-\sqrt{b}v}\right)dv$$ 通分，得到
+$$\sqrt{a}(A&#43;B)&#43;\sqrt{b}v(B-A)=1$$ 则 $$ \begin{cases} \sqrt{a}\,(A&#43;B)=1 \\ B-A=0 \end{cases} $$ 解得
+$$A=B=\frac{1}{2\sqrt{a}}$$ 代回积分式，整理得到 $$\frac{1}{2\sqrt{ab}}\left(\int \frac{1}{v&#43;\sqrt{\frac{a}{b}}}dv&#43; \int \frac{1}{v-\sqrt{\frac{a}{b}}}dv\right)$$ 积分并整理得到
+$$\frac{1}{2\sqrt{ab}}\ln\left|v^2-\frac{a}{b}\right|&#43;C$$ 代入$a=mg$，$b=\frac{1}{2}\rho S$得到原积分等于 $$\frac{m}{2\sqrt{\frac{1}{2}\rho mgS}}\ln\left|v^2-\frac{mg}{\frac{1}{2}\rho S}\right|&#43;C$$ 亦即 $$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|v^2-\frac{2mg}{\rho S}\right|&#43;C$$ 反解出$v$关于$t$的函数 $$v=f(t)=\sqrt{e^{\frac{\sqrt{2\rho mgS}}{m}t}&#43;\frac{2mg}{\rho S}}$$ 推导完毕。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-13 10:55:47 +0800 CST'>July 13, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 带空气阻力下落运动v-t关系式推导" href="http://localhost:1313/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/"></a>
+</article>
 
 <article class="post-entry"> 
   <header class="entry-header">

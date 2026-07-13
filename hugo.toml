@@ -6,19 +6,6 @@ theme = 'PaperMod'
 [params.homeInfoParams]
  Title = "屑小鱼的个人博客"
  Content = "欢迎回来"
- 
- socialIcons = [
-    {name = "bilibili", url = "https://space.bilibili.com/2127510248"},
-    {name = "github", url = "https://github.com/xxy-maimai"}
- ]
- [params.fuseOpts]
- isCaseSensitive = false
- ShowReadingTime = true
- ShowWordCount = true
-[[menu.main]]
- identifier = "posts"
- name = "文章"
- url = "/posts/"
 
  [params]
         math = true

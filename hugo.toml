@@ -9,6 +9,12 @@ theme = 'PaperMod'
 
  [params]
         math = true
+   [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/xxy-maimai"
+  [[params.socialIcons]]
+    name = "bilibili"
+    url = "https://space.bilibili.com/2127510248"
 
 [markup]
   [markup.goldmark]

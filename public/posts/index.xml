@@ -6,8 +6,24 @@
     <description>Recent content in Posts on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 13 Jul 2026 10:55:47 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 14 Jul 2026 21:43:33 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>4k模拟器开发日志(1)</title>
+      <link>http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97/</link>
+      <pubDate>Tue, 14 Jul 2026 21:43:33 +0800</pubDate>
+      <guid>http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97/</guid>
+      <description>&lt;p&gt;上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。&lt;br&gt;
+哎。我代码管理太垃圾了。基本没法看。这就是$0%$AI的屎山之力吗？有点意思。&lt;br&gt;
+简单说说开发思路吧。&lt;br&gt;
+使用C# + Raylib进行开发。&lt;br&gt;
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。&lt;br&gt;
+音乐播放直接用raylib内置播放api了。省时省力。&lt;br&gt;
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。&lt;br&gt;
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&amp;gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。&lt;br&gt;
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。&lt;br&gt;
+先写到这吧。洗洗睡了。还得大战作业。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>带空气阻力下落运动v-t关系式推导</title>
       <link>http://localhost:1313/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/</link>

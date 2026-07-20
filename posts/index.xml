@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on XxyBlog</title><link>https://xxy-maimai.github.io/posts/</link><description>Recent content in Posts on XxyBlog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Mon, 20 Jul 2026 16:54:03 +0800</lastBuildDate><atom:link href="https://xxy-maimai.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>4k模拟器开发日志(4)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/</link><pubDate>Mon, 20 Jul 2026 16:54:03 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/</guid><description>&lt;p&gt;天啊，今天我居然又有精神写这个东西，而且我还给写完了。&lt;br&gt;
+今天修了点bug，然后加了字符串解析，以及优化了一些其他的东西。&lt;br&gt;
+字符串解析的话，以&amp;quot;&amp;amp;&amp;ldquo;字符开头的均为元数据，即偏移、bpm以及拍号；tap以单独数字表示，hold以数字+h+持续拍号+冒号+持续时值表示，逗号分隔，加号表示多押，这些都很好写，比我去年写simai语法解析简单多了。&lt;br&gt;
+顺便学习了一波json解析，也是很简单，阅读设置文件用到了。&lt;br&gt;
+这样的话这个项目大概就完成了，先这样吧。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(3)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/</link><pubDate>Sun, 19 Jul 2026 21:29:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/</guid><description>&lt;p&gt;孩子们，今天我也是工作量超标了。我居然有劲头给hold的渲染以及判定全都写好。&lt;br&gt;
+到头来也没有认真读osu源码，还是自己想的居多，虽然也问ai参考了一下逻辑，但是全是自己写的代码，无ai成分。&lt;br&gt;
+具体实现逻辑其实并不难，渲染的话，复制平铺这一点我想到了，但是尾部的裁剪我是没考虑到，所以尝试实现了；在判定时轨道底部会有蒙版造出来吃掉的感觉，也实现出来了。&lt;br&gt;
+判定的话，也是加了一些奇奇怪怪的bool值给他做出来了。其实也不算太复杂。&lt;br&gt;
+今天可是给我累死了，先这样吧。&lt;/p&gt;</description></item><item><title>伟大的决定</title><link>https://xxy-maimai.github.io/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/</link><pubDate>Sat, 18 Jul 2026 19:46:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/</guid><description>&lt;p&gt;哎。感觉还是不能糊弄的写完4k模拟器。所以我决定阅读osu的源码，学习一下它的处理逻辑。这将会很疯狂。&lt;br&gt;
+这个源码其实读起来不算简单。毕竟是大项目，很多叠了好几层文件的方法和类。不过我会尽力尝试。&lt;br&gt;
+而且我斥巨资购买的5块deepseek api还没用完呢。我得用用，辅助我读源码。就这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(2)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/</link><pubDate>Wed, 15 Jul 2026 21:24:04 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/</guid><description>&lt;p&gt;今天又写了点。已经把主要内容写完了。&lt;br&gt;
+优化了下代码结构，然后补充了点新内容，现在播放正常谱面并且游玩已经可以了。唯一的遗憾是这个hold的逻辑我写的是一坨屎。&lt;br&gt;
+具体原因就是hold头同tap判定，hold身体和尾巴按住就判，但是这个按住吧，它是不受hold头影响的。也就是hold头完全没有起到控制后续hold的作用。这点，当作feature吧。&lt;br&gt;
+现在只差读取谱面文件翻译播放了。但是这个不太好做，我一向是不擅长写字符串解析的。哎。想写了再写吧。有点无助。先这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(1)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</link><pubDate>Tue, 14 Jul 2026 21:43:33 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</guid><description>&lt;p&gt;上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。&lt;br&gt;
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。&lt;br&gt;
+简单说说开发思路吧。&lt;br&gt;
+使用C# + Raylib进行开发。&lt;br&gt;
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。&lt;br&gt;
+音乐播放直接用raylib内置播放api了。省时省力。&lt;br&gt;
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。&lt;br&gt;
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&amp;gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。&lt;br&gt;
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。&lt;br&gt;
+先写到这吧。洗洗睡了。还得大战作业。&lt;/p&gt;</description></item><item><title>带空气阻力下落运动v-t关系式推导</title><link>https://xxy-maimai.github.io/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/</link><pubDate>Mon, 13 Jul 2026 10:55:47 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/</guid><description>&lt;p&gt;哎。心酸。本来在我朋友的博客上写过了一次这个东西。结果经历一周访问不了他也不修。我只能提着昨日种种千辛万苦。&lt;br&gt;
+但是我居然™的从ai聊天记录里翻出来了这篇，虽然翻出来的计算结果是错的，但是我能再改改用。可惜的是还有两篇找不到。我还得自己写一遍。不过那两篇一个是高考题。一个是未解决的问题。无所吊谓说是。&lt;br&gt;
+正文：&lt;br&gt;
+我们受力分析：
+&lt;/p&gt;
+$$mg-f=ma$$&lt;p&gt;
+将$f=\frac{1}{2}\rho Sv^2$代入，并且写为微分形式：
+&lt;/p&gt;
+$$\frac{1}{m}(mg-\frac{1}{2}\rho Sv^2) = \frac{dv}{dt}$$&lt;p&gt;
+分离变量：
+&lt;/p&gt;
+$$dt=\frac{m}{mg-\frac{1}{2}\rho Sv^2}\cdot dv$$&lt;p&gt;
+积分：
+&lt;/p&gt;
+$$\int dt=\int \frac{m}{mg-\frac{1}{2}\rho Sv^2} dv$$&lt;p&gt;
+接下来处理积分问题。
+&lt;/p&gt;
+$$\int \frac{m}{mg-\frac{1}{2}\rho Sv^2}dv=m\int\frac{1}{mg-\frac{1}{2}\rho Sv^2}dv$$&lt;p&gt;
+我们研究如下形式的积分：
+&lt;/p&gt;
+$$\int \frac{1}{a-bv^2}dv=\int\left(\frac{A}{\sqrt{a}+\sqrt{b}v}+\frac{B}{\sqrt{a}-\sqrt{b}v}\right)dv$$&lt;p&gt;
+通分，得到&lt;/p&gt;
+$$\sqrt{a}(A+B)+\sqrt{b}v(B-A)=1$$&lt;p&gt;
+则
+&lt;/p&gt;
+$$
+\begin{cases}
+\sqrt{a}\,(A+B)=1 \\
+B-A=0
+\end{cases}
+$$&lt;p&gt;
+解得&lt;/p&gt;
+$$A=B=\frac{1}{2\sqrt{a}}$$&lt;p&gt;
+代回积分式，整理得到
+&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\left(\int \frac{1}{v+\sqrt{\frac{a}{b}}}dv - \int \frac{1}{v-\sqrt{\frac{a}{b}}}dv\right)$$&lt;p&gt;
+积分并整理得到&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\ln\left|\frac{\sqrt{a}+\sqrt{b}v}{\sqrt{a}-\sqrt{b}v}\right|+C$$&lt;p&gt;
+代入$a=mg$，$b=\frac{1}{2}\rho S$得到原积分等于
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+亦即
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+推导完毕。&lt;br&gt;
+P.S.反解的话，我懒得搞了。好像可以用反双曲正切搞？随便了。&lt;/p&gt;</description></item><item><title>Test</title><link>https://xxy-maimai.github.io/posts/test/</link><pubDate>Sat, 11 Jul 2026 11:36:02 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/test/</guid><description>&lt;p&gt;这是一个测试文章，也是此博客第一个文章。欢迎来玩。&lt;/p&gt;</description></item></channel></rss>

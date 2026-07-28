@@ -5,12 +5,21 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>404 Page not found | XxyBlog</title>
+<title>4k模拟器开发日志(1) | XxyBlog</title>
 <meta name="keywords" content="">
-<meta name="description" content="">
+<meta name="description" content="上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。
+简单说说开发思路吧。
+使用C# &#43; Raylib进行开发。
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。
+音乐播放直接用raylib内置播放api了。省时省力。
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。
+先写到这吧。洗洗睡了。还得大战作业。">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/404.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
+<link rel="canonical" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -18,7 +27,7 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/404.html">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/">
 <noscript>
     <style>
         #theme-toggle,
@@ -86,7 +95,7 @@
 </script>
 
 </head>
-<body class="list" id="top">
+<body id="top">
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
@@ -119,7 +128,38 @@
     </nav>
 </header>
 <main class="main">
-<div class="not-found">404</div>
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      4k模拟器开发日志(1)
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-07-14 21:43:33 +0800 CST'>July 14, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><p>上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。<br>
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。<br>
+简单说说开发思路吧。<br>
+使用C# + Raylib进行开发。<br>
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。<br>
+音乐播放直接用raylib内置播放api了。省时省力。<br>
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。<br>
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。<br>
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。<br>
+先写到这吧。洗洗睡了。还得大战作业。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
     </main>
     
 <footer class="footer">

@@ -128,12 +128,101 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">对vector的简单实现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-28 09:17:44 +0800 CST'>July 28, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 对vector的简单实现" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">4k模拟器开发日志(4)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>天啊，今天我居然又有精神写这个东西，而且我还给写完了。
+今天修了点bug，然后加了字符串解析，以及优化了一些其他的东西。
+字符串解析的话，以&#34;&amp;“字符开头的均为元数据，即偏移、bpm以及拍号；tap以单独数字表示，hold以数字&#43;h&#43;持续拍号&#43;冒号&#43;持续时值表示，逗号分隔，加号表示多押，这些都很好写，比我去年写simai语法解析简单多了。
+顺便学习了一波json解析，也是很简单，阅读设置文件用到了。
+这样的话这个项目大概就完成了，先这样吧。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-20 16:54:03 +0800 CST'>July 20, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(4)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">4k模拟器开发日志(3)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>孩子们，今天我也是工作量超标了。我居然有劲头给hold的渲染以及判定全都写好。
+到头来也没有认真读osu源码，还是自己想的居多，虽然也问ai参考了一下逻辑，但是全是自己写的代码，无ai成分。
+具体实现逻辑其实并不难，渲染的话，复制平铺这一点我想到了，但是尾部的裁剪我是没考虑到，所以尝试实现了；在判定时轨道底部会有蒙版造出来吃掉的感觉，也实现出来了。
+判定的话，也是加了一些奇奇怪怪的bool值给他做出来了。其实也不算太复杂。
+今天可是给我累死了，先这样吧。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-19 21:29:11 +0800 CST'>July 19, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(3)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">伟大的决定
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>哎。感觉还是不能糊弄的写完4k模拟器。所以我决定阅读osu的源码，学习一下它的处理逻辑。这将会很疯狂。
+这个源码其实读起来不算简单。毕竟是大项目，很多叠了好几层文件的方法和类。不过我会尽力尝试。
+而且我斥巨资购买的5块deepseek api还没用完呢。我得用用，辅助我读源码。就这样。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-18 19:46:11 +0800 CST'>July 18, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 伟大的决定" href="http://localhost:1313/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">4k模拟器开发日志(2)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>今天又写了点。已经把主要内容写完了。
+优化了下代码结构，然后补充了点新内容，现在播放正常谱面并且游玩已经可以了。唯一的遗憾是这个hold的逻辑我写的是一坨屎。
+具体原因就是hold头同tap判定，hold身体和尾巴按住就判，但是这个按住吧，它是不受hold头影响的。也就是hold头完全没有起到控制后续hold的作用。这点，当作feature吧。
+现在只差读取谱面文件翻译播放了。但是这个不太好做，我一向是不擅长写字符串解析的。哎。想写了再写吧。有点无助。先这样。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-15 21:24:04 +0800 CST'>July 15, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(2)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">4k模拟器开发日志(1)
     </h2>
   </header>
   <div class="entry-content">
     <p>上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。
-哎。我代码管理太垃圾了。基本没法看。这就是$0%$AI的屎山之力吗？有点意思。
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。
 简单说说开发思路吧。
 使用C# &#43; Raylib进行开发。
 首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。
@@ -147,7 +236,7 @@ tap已经做好了，判定区间：±40ms为max，±80ms为great，&gt;80ms为m
   <footer class="entry-footer">
 
 <span title='2026-07-14 21:43:33 +0800 CST'>July 14, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(1)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%97/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(1)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/"></a>
 </article>
 
 <article class="post-entry"> 

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>对vector的简单实现 | XxyBlog</title>
+<meta name="keywords" content="">
+<meta name="description" content="最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。
+当然我没用std::allocator实现分配内存，我只用了new和delete。
+简单写写笔记。
+1.写在前面
+(1)学到的一些语法知识
+&lt;1&gt;const限定类方法
+之前我没有仔细研究过c&#43;&#43;的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：void f() {}时，如果创建的是const对象，需要在结尾加上一个const修饰符表明这个方法对于const对象可用（e.g. void f() const {}），以前还真没注意过。
+&lt;2&gt;常引用传参
+这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。
+普通传参如void f(int x) {}，此时x是要进行拷贝的，如果说x不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：void f(const T&amp; x) {}减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。
+这里的常引用传参实际上就是访问了传进来参数的数据，并且const限定了以只读形式访问，安全性up。
+&lt;3&gt;指针加减法
+没想到我还能在这种基础问题上拿不准。
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以sizeof(T)来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。
+还有一个衍生问题就是&#43;&#43;和--运算符，对于一个简单类型的变量/指针来说，i&#43;&#43;和&#43;&#43;i（--同理）没什么区别，都是计算机的add指令之类的，但是对于指针，这个区别很大，主要在于i&#43;&#43;需要执行构造函数，而&#43;&#43;i不需要，这里又是开销的问题。所以以后我觉得还是把&#43;&#43;作为“向后移动一位”的意思来理解吧。
+&lt;4&gt;delete和delete[]的区别
+这个也是因为我不怎么写c&#43;&#43;的指针相关内容导致的。
+delete只释放了后面跟的一个对象的那一块内存，而delete[]释放了后面跟着的一大块内存。
+我们这里扩容声明的新内存都是通过new[]的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用delete[]会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。
+(2)防御性编程
+这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c&#43;&#43;的设计哲学罢。
+(3)size_t的用途
+size_t这东西实际上就是专门用来存储容器大小数据的类型，所以包括size()、capacity在内的方法返回值都是size_t，for循环遍历的时候如果不用iterator也要用size_t来声明循环变量。
+2.基本功能
+vector实际上维护的是一块连续的内存，而我们只需要手动维护start，finish和end_of_storage指针。
+(1)push_back
+push_back的逻辑很简单，首先检查finish == end_of_storage是否成立，如果成立说明需要扩容，不成立就直接添加元素。
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回3221225477了。
+我们可以申请一块新内存：T* new_mem = new T[new_capacity]，然后将数据一个一个放进new_mem里面，这样就完成了扩容。
+new_capacity是依情况而定的，如果capacity() == 0那么new_capacity为1，否则直接翻倍。
+无论是否扩容，我们都要执行*finish = val; &#43;&#43;finish的类似语句，这样一个push_back就完成了。
+(2)insert和erase
+这俩玩意逻辑挺相似的。
+insert同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来index，扩容完毕以后用pos = start &#43; index加回来就好。
+而insert的移动元素是从后往前挪，从finish这个空位开始依次执行*it = *(it - 1)（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。
+腾出来相应的位置直接*pos = val就好了。很简单。最后&#43;&#43;finish。
+erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos == finish并返回nullptr即可。
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行--finish; finish-&gt;~T()（因为原来的finish前一位是有数据的，这里给它释放置空）。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js" integrity="sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="XxyBlog (Alt + H)">XxyBlog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      对vector的简单实现
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-07-28 09:17:44 +0800 CST'>July 28, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><p>最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。<br>
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。<br>
+当然我没用<code>std::allocator</code>实现分配内存，我只用了<code>new</code>和<code>delete</code>。<br>
+简单写写笔记。</p>
+<h2 id="1写在前面">1.写在前面<a hidden class="anchor" aria-hidden="true" href="#1写在前面">#</a></h2>
+<h3 id="1学到的一些语法知识">(1)学到的一些语法知识<a hidden class="anchor" aria-hidden="true" href="#1学到的一些语法知识">#</a></h3>
+<h4 id="1const限定类方法">&lt;1&gt;<code>const</code>限定类方法<a hidden class="anchor" aria-hidden="true" href="#1const限定类方法">#</a></h4>
+<p>之前我没有仔细研究过c++的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：<code>void f() {}</code>时，如果创建的是<code>const</code>对象，需要在结尾加上一个<code>const</code>修饰符表明这个方法对于<code>const</code>对象可用（e.g. <code>void f() const {}</code>），以前还真没注意过。</p>
+<h4 id="2常引用传参">&lt;2&gt;常引用传参<a hidden class="anchor" aria-hidden="true" href="#2常引用传参">#</a></h4>
+<p>这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。<br>
+普通传参如<code>void f(int x) {}</code>，此时<code>x</code>是要进行拷贝的，如果说<code>x</code>不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：<code>void f(const T&amp; x) {}</code>减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。<br>
+这里的常引用传参实际上就是访问了传进来参数的数据，并且<code>const</code>限定了以只读形式访问，安全性up。</p>
+<h4 id="3指针加减法">&lt;3&gt;指针加减法<a hidden class="anchor" aria-hidden="true" href="#3指针加减法">#</a></h4>
+<p>没想到我还能在这种基础问题上拿不准。<br>
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以<code>sizeof(T)</code>来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。
+还有一个衍生问题就是<code>++</code>和<code>--</code>运算符，对于一个简单类型的变量/指针来说，<code>i++</code>和<code>++i</code>（<code>--</code>同理）没什么区别，都是计算机的<code>add</code>指令之类的，但是对于指针，这个区别很大，主要在于<code>i++</code>需要执行构造函数，而<code>++i</code>不需要，这里又是开销的问题。所以以后我觉得还是把<code>++</code>作为“向后移动一位”的意思来理解吧。</p>
+<h4 id="4delete和delete的区别">&lt;4&gt;<code>delete</code>和<code>delete[]</code>的区别<a hidden class="anchor" aria-hidden="true" href="#4delete和delete的区别">#</a></h4>
+<p>这个也是因为我不怎么写c++的指针相关内容导致的。<br>
+<code>delete</code>只释放了后面跟的一个对象的那一块内存，而<code>delete[]</code>释放了后面跟着的一大块内存。
+我们这里扩容声明的新内存都是通过<code>new[]</code>的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用<code>delete[]</code>会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。</p>
+<h3 id="2防御性编程">(2)防御性编程<a hidden class="anchor" aria-hidden="true" href="#2防御性编程">#</a></h3>
+<p>这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c++的设计哲学罢。</p>
+<h3 id="3size_t的用途">(3)size_t的用途<a hidden class="anchor" aria-hidden="true" href="#3size_t的用途">#</a></h3>
+<p><code>size_t</code>这东西实际上就是专门用来存储容器大小数据的类型，所以包括<code>size()</code>、<code>capacity</code>在内的方法返回值都是<code>size_t</code>，<code>for</code>循环遍历的时候如果不用<code>iterator</code>也要用<code>size_t</code>来声明循环变量。</p>
+<h2 id="2基本功能">2.基本功能<a hidden class="anchor" aria-hidden="true" href="#2基本功能">#</a></h2>
+<p>vector实际上维护的是一块连续的内存，而我们只需要手动维护<code>start</code>，<code>finish</code>和<code>end_of_storage</code>指针。</p>
+<h3 id="1push_back">(1)<code>push_back</code><a hidden class="anchor" aria-hidden="true" href="#1push_back">#</a></h3>
+<p><code>push_back</code>的逻辑很简单，首先检查<code>finish == end_of_storage</code>是否成立，如果成立说明需要扩容，不成立就直接添加元素。<br>
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回<code>3221225477</code>了。<br>
+我们可以申请一块新内存：<code>T* new_mem = new T[new_capacity]</code>，然后将数据一个一个放进<code>new_mem</code>里面，这样就完成了扩容。<br>
+<code>new_capacity</code>是依情况而定的，如果<code>capacity() == 0</code>那么<code>new_capacity</code>为<code>1</code>，否则直接翻倍。
+无论是否扩容，我们都要执行<code>*finish = val; ++finish</code>的类似语句，这样一个<code>push_back</code>就完成了。</p>
+<h3 id="2insert和erase">(2)<code>insert</code>和<code>erase</code><a hidden class="anchor" aria-hidden="true" href="#2insert和erase">#</a></h3>
+<p>这俩玩意逻辑挺相似的。<br>
+<code>insert</code>同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来<code>index</code>，扩容完毕以后用<code>pos = start + index</code>加回来就好。<br>
+而<code>insert</code>的移动元素是从后往前挪，从<code>finish</code>这个空位开始依次执行<code>*it = *(it - 1)</code>（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。<br>
+腾出来相应的位置直接<code>*pos = val</code>就好了。很简单。最后<code>++finish</code>。<br>
+<code>erase</code>相对简单，它不用考虑扩容问题，只需要判断<code>empty() || pos == finish</code>并返回<code>nullptr</code>即可。<br>
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行<code>--finish; finish-&gt;~T()</code>（因为原来的finish前一位是有数据的，这里给它释放置空）。</p>
+<h3 id="3iterator">(3)<code>iterator</code><a hidden class="anchor" aria-hidden="true" href="#3iterator">#</a></h3>
+<p>迭代器其实就是一个<code>T*</code>指针，没什么好说的，对应的<code>const</code>版本也只是<code>const T*</code>指针。</p>
+<h3 id="4-vectorconst-vector-other构造函数以及operatorconst-vector-other运算符重载">(4) <code>vector(const vector&amp; other)</code>构造函数以及<code>operator=(const vector&amp; other)</code>运算符重载<a hidden class="anchor" aria-hidden="true" href="#4-vectorconst-vector-other构造函数以及operatorconst-vector-other运算符重载">#</a></h3>
+<p>对于构造函数的实现，我们无需考虑自己赋值给自己的问题，所以我们可以直接开辟新内存往里存数据。<br>
+而等号的运算符重载需要考虑一下自己给自己赋值的问题，所以加一个<code>this == &amp;other</code>判断就好了。</p>
+<h3 id="5其它基础功能">(5)其它基础功能<a hidden class="anchor" aria-hidden="true" href="#5其它基础功能">#</a></h3>
+<p>别的功能都没什么好说的了，像是<code>begin()</code>和<code>end()</code>这些直接返回<code>start</code>和<code>finish</code>，重载<code>operator[]</code>只是算了个指针加法，没什么意思就不细说了。</p>
+<h2 id="3总结">3.总结<a hidden class="anchor" aria-hidden="true" href="#3总结">#</a></h2>
+<p>写了这个简单vector以后，对于c++内存管理一类的内容有了一些新理解，也学到了一些编程上的技巧、策略。希望还能有这种学习的机会。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">XxyBlog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

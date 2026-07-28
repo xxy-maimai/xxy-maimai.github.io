@@ -24,3 +24,8 @@ theme = 'PaperMod'
         [markup.goldmark.extensions.passthrough.delimiters]
           block = [['$$', '$$']]
           inline = [['$', '$']]
+ [params.profileMode]
+   enabled = false
+   imageurl = "img/profile.jpg"
+   imageWidth = 403
+   imageHeight = 404

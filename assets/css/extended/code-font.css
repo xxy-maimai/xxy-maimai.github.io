@@ -1,0 +1,9 @@
+/* 针对代码块（围栏式代码） */
+.post-content pre code {
+    font-family: "Fira Code", "JetBrains Mono", Consolas, "Courier New", monospace !important;
+}
+
+/* 针对行内代码（`like this`） */
+.post-content code:not(pre code) {
+    font-family: "Fira Code", "JetBrains Mono", Consolas, "Courier New", monospace !important;
+}

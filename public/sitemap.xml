@@ -3,10 +3,13 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>http://localhost:1313/posts/</loc>
-    <lastmod>2026-07-28T09:17:44+08:00</lastmod>
+    <lastmod>2026-07-29T09:49:41+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2026-07-28T09:17:44+08:00</lastmod>
+    <lastmod>2026-07-29T09:49:41+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</loc>
+    <lastmod>2026-07-29T09:49:41+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</loc>
     <lastmod>2026-07-28T09:17:44+08:00</lastmod>

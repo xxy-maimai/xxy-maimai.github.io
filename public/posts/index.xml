@@ -6,16 +6,73 @@
     <description>Recent content in Posts on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 28 Jul 2026 09:17:44 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jul 2026 09:49:41 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>对vector的较高级实现</title>
+      <link>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</link>
+      <pubDate>Wed, 29 Jul 2026 09:49:41 +0800</pubDate>
+      <guid>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</guid>
+      <description>&lt;p&gt;昨天写完那篇blog之后继续写了vector，写到今天上午大致完工了。&lt;br&gt;
+写完这堆以后收获也是颇丰，依旧简单写写笔记。&lt;/p&gt;
+&lt;h2 id=&#34;1写在前面&#34;&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id=&#34;1学到的知识&#34;&gt;(1)学到的知识&lt;/h3&gt;
+&lt;h4 id=&#34;1-stdallocator的应用&#34;&gt;&amp;lt;1&amp;gt; &lt;code&gt;std::allocator&lt;/code&gt;的应用&lt;/h4&gt;
+&lt;p&gt;是的没错，我用&lt;code&gt;std::allocator&lt;/code&gt;重构了所有内容。&lt;br&gt;
+这个东西确实是很好用，也便于内存管理。&lt;br&gt;
+这次我主要用了四个方法：&lt;code&gt;allocate&lt;/code&gt;、&lt;code&gt;deallocate&lt;/code&gt;、&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;。&lt;br&gt;
+首先是&lt;code&gt;allocate&lt;/code&gt;，我用的是&lt;code&gt;allocate(容量)&lt;/code&gt;这一重载，用于申请一块没有任何内容的内存。
+然后是&lt;code&gt;deallocate&lt;/code&gt;，使用&lt;code&gt;deallocate(内存开头，容量)&lt;/code&gt;这一重载，用于释放一块内存。
+接着是&lt;code&gt;construct&lt;/code&gt;，使用&lt;code&gt;construct(内存地址，值)&lt;/code&gt;重载，用于在申请的内存上构建一个元素。
+最后是&lt;code&gt;destroy&lt;/code&gt;，使用&lt;code&gt;destroy(内存地址)&lt;/code&gt;重载，用于析构指定地址的元素。
+这四个方法直接替代了&lt;code&gt;new[] - delete[]&lt;/code&gt;关键字，体现了c++对于开发人员的高自由度。（不如说是高bug发生率）&lt;/p&gt;
+&lt;h3 id=&#34;2关于异常处理&#34;&gt;(2)关于异常处理&lt;/h3&gt;
+&lt;p&gt;我并没有写异常处理，毕竟这只是一个练手项目。如果我有精力的话我可能会补上。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>对vector的简单实现</title>
       <link>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</link>
       <pubDate>Tue, 28 Jul 2026 09:17:44 +0800</pubDate>
       <guid>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</guid>
       <description>&lt;p&gt;最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。&lt;br&gt;
-其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;</description>
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。&lt;br&gt;
+当然我没用&lt;code&gt;std::allocator&lt;/code&gt;实现分配内存，我只用了&lt;code&gt;new&lt;/code&gt;和&lt;code&gt;delete&lt;/code&gt;。&lt;br&gt;
+简单写写笔记。&lt;/p&gt;
+&lt;h2 id=&#34;1写在前面&#34;&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id=&#34;1学到的一些语法知识&#34;&gt;(1)学到的一些语法知识&lt;/h3&gt;
+&lt;h4 id=&#34;1const限定类方法&#34;&gt;&amp;lt;1&amp;gt;&lt;code&gt;const&lt;/code&gt;限定类方法&lt;/h4&gt;
+&lt;p&gt;之前我没有仔细研究过c++的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：&lt;code&gt;void f() {}&lt;/code&gt;时，如果创建的是&lt;code&gt;const&lt;/code&gt;对象，需要在结尾加上一个&lt;code&gt;const&lt;/code&gt;修饰符表明这个方法对于&lt;code&gt;const&lt;/code&gt;对象可用（e.g. &lt;code&gt;void f() const {}&lt;/code&gt;），以前还真没注意过。&lt;/p&gt;
+&lt;h4 id=&#34;2常引用传参&#34;&gt;&amp;lt;2&amp;gt;常引用传参&lt;/h4&gt;
+&lt;p&gt;这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。&lt;br&gt;
+普通传参如&lt;code&gt;void f(int x) {}&lt;/code&gt;，此时&lt;code&gt;x&lt;/code&gt;是要进行拷贝的，如果说&lt;code&gt;x&lt;/code&gt;不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：&lt;code&gt;void f(const T&amp;amp; x) {}&lt;/code&gt;减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。&lt;br&gt;
+这里的常引用传参实际上就是访问了传进来参数的数据，并且&lt;code&gt;const&lt;/code&gt;限定了以只读形式访问，安全性up。&lt;/p&gt;
+&lt;h4 id=&#34;3指针加减法&#34;&gt;&amp;lt;3&amp;gt;指针加减法&lt;/h4&gt;
+&lt;p&gt;没想到我还能在这种基础问题上拿不准。&lt;br&gt;
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以&lt;code&gt;sizeof(T)&lt;/code&gt;来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。
+还有一个衍生问题就是&lt;code&gt;++&lt;/code&gt;和&lt;code&gt;--&lt;/code&gt;运算符，对于一个简单类型的变量/指针来说，&lt;code&gt;i++&lt;/code&gt;和&lt;code&gt;++i&lt;/code&gt;（&lt;code&gt;--&lt;/code&gt;同理）没什么区别，都是计算机的&lt;code&gt;add&lt;/code&gt;指令之类的，但是对于指针，这个区别很大，主要在于&lt;code&gt;i++&lt;/code&gt;需要执行构造函数，而&lt;code&gt;++i&lt;/code&gt;不需要，这里又是开销的问题。所以以后我觉得还是把&lt;code&gt;++&lt;/code&gt;作为“向后移动一位”的意思来理解吧。&lt;/p&gt;
+&lt;h4 id=&#34;4delete和delete的区别&#34;&gt;&amp;lt;4&amp;gt;&lt;code&gt;delete&lt;/code&gt;和&lt;code&gt;delete[]&lt;/code&gt;的区别&lt;/h4&gt;
+&lt;p&gt;这个也是因为我不怎么写c++的指针相关内容导致的。&lt;br&gt;
+&lt;code&gt;delete&lt;/code&gt;只释放了后面跟的一个对象的那一块内存，而&lt;code&gt;delete[]&lt;/code&gt;释放了后面跟着的一大块内存。
+我们这里扩容声明的新内存都是通过&lt;code&gt;new[]&lt;/code&gt;的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用&lt;code&gt;delete[]&lt;/code&gt;会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。&lt;/p&gt;
+&lt;h3 id=&#34;2防御性编程&#34;&gt;(2)防御性编程&lt;/h3&gt;
+&lt;p&gt;这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c++的设计哲学罢。&lt;/p&gt;
+&lt;h3 id=&#34;3size_t的用途&#34;&gt;(3)size_t的用途&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;size_t&lt;/code&gt;这东西实际上就是专门用来存储容器大小数据的类型，所以包括&lt;code&gt;size()&lt;/code&gt;、&lt;code&gt;capacity&lt;/code&gt;在内的方法返回值都是&lt;code&gt;size_t&lt;/code&gt;，&lt;code&gt;for&lt;/code&gt;循环遍历的时候如果不用&lt;code&gt;iterator&lt;/code&gt;也要用&lt;code&gt;size_t&lt;/code&gt;来声明循环变量。&lt;/p&gt;
+&lt;h2 id=&#34;2基本功能&#34;&gt;2.基本功能&lt;/h2&gt;
+&lt;p&gt;vector实际上维护的是一块连续的内存，而我们只需要手动维护&lt;code&gt;start&lt;/code&gt;，&lt;code&gt;finish&lt;/code&gt;和&lt;code&gt;end_of_storage&lt;/code&gt;指针。&lt;/p&gt;
+&lt;h3 id=&#34;1push_back&#34;&gt;(1)&lt;code&gt;push_back&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;push_back&lt;/code&gt;的逻辑很简单，首先检查&lt;code&gt;finish == end_of_storage&lt;/code&gt;是否成立，如果成立说明需要扩容，不成立就直接添加元素。&lt;br&gt;
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回&lt;code&gt;3221225477&lt;/code&gt;了。&lt;br&gt;
+我们可以申请一块新内存：&lt;code&gt;T* new_mem = new T[new_capacity]&lt;/code&gt;，然后将数据一个一个放进&lt;code&gt;new_mem&lt;/code&gt;里面，这样就完成了扩容。&lt;br&gt;
+&lt;code&gt;new_capacity&lt;/code&gt;是依情况而定的，如果&lt;code&gt;capacity() == 0&lt;/code&gt;那么&lt;code&gt;new_capacity&lt;/code&gt;为&lt;code&gt;1&lt;/code&gt;，否则直接翻倍。
+无论是否扩容，我们都要执行&lt;code&gt;*finish = val; ++finish&lt;/code&gt;的类似语句，这样一个&lt;code&gt;push_back&lt;/code&gt;就完成了。&lt;/p&gt;
+&lt;h3 id=&#34;2insert和erase&#34;&gt;(2)&lt;code&gt;insert&lt;/code&gt;和&lt;code&gt;erase&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这俩玩意逻辑挺相似的。&lt;br&gt;
+&lt;code&gt;insert&lt;/code&gt;同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来&lt;code&gt;index&lt;/code&gt;，扩容完毕以后用&lt;code&gt;pos = start + index&lt;/code&gt;加回来就好。&lt;br&gt;
+而&lt;code&gt;insert&lt;/code&gt;的移动元素是从后往前挪，从&lt;code&gt;finish&lt;/code&gt;这个空位开始依次执行&lt;code&gt;*it = *(it - 1)&lt;/code&gt;（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。&lt;br&gt;
+腾出来相应的位置直接&lt;code&gt;*pos = val&lt;/code&gt;就好了。很简单。最后&lt;code&gt;++finish&lt;/code&gt;。&lt;br&gt;
+&lt;code&gt;erase&lt;/code&gt;相对简单，它不用考虑扩容问题，只需要判断&lt;code&gt;empty() || pos == finish&lt;/code&gt;并返回&lt;code&gt;nullptr&lt;/code&gt;即可。&lt;br&gt;
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行&lt;code&gt;--finish; finish-&amp;gt;~T()&lt;/code&gt;（因为原来的finish前一位是有数据的，这里给它释放置空）。&lt;/p&gt;</description>
     </item>
     <item>
       <title>4k模拟器开发日志(4)</title>

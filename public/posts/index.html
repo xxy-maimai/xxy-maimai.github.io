@@ -10,7 +10,7 @@
 <meta name="description" content="Posts - XxyBlog">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -128,13 +128,57 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">对vector的较高级实现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>昨天写完那篇blog之后继续写了vector，写到今天上午大致完工了。
+写完这堆以后收获也是颇丰，依旧简单写写笔记。
+1.写在前面 (1)学到的知识 &lt;1&gt; std::allocator的应用 是的没错，我用std::allocator重构了所有内容。
+这个东西确实是很好用，也便于内存管理。
+这次我主要用了四个方法：allocate、deallocate、construct和destroy。
+首先是allocate，我用的是allocate(容量)这一重载，用于申请一块没有任何内容的内存。 然后是deallocate，使用deallocate(内存开头，容量)这一重载，用于释放一块内存。 接着是construct，使用construct(内存地址，值)重载，用于在申请的内存上构建一个元素。 最后是destroy，使用destroy(内存地址)重载，用于析构指定地址的元素。 这四个方法直接替代了new[] - delete[]关键字，体现了c&#43;&#43;对于开发人员的高自由度。（不如说是高bug发生率）
+(2)关于异常处理 我并没有写异常处理，毕竟这只是一个练手项目。如果我有精力的话我可能会补上。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-07-29 09:49:41 +0800 CST'>July 29, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 对vector的较高级实现" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">对vector的简单实现
     </h2>
   </header>
   <div class="entry-content">
     <p>最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。
 其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。
-</p>
+当然我没用std::allocator实现分配内存，我只用了new和delete。
+简单写写笔记。
+1.写在前面 (1)学到的一些语法知识 &lt;1&gt;const限定类方法 之前我没有仔细研究过c&#43;&#43;的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：void f() {}时，如果创建的是const对象，需要在结尾加上一个const修饰符表明这个方法对于const对象可用（e.g. void f() const {}），以前还真没注意过。
+&lt;2&gt;常引用传参 这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。
+普通传参如void f(int x) {}，此时x是要进行拷贝的，如果说x不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：void f(const T&amp; x) {}减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。
+这里的常引用传参实际上就是访问了传进来参数的数据，并且const限定了以只读形式访问，安全性up。
+&lt;3&gt;指针加减法 没想到我还能在这种基础问题上拿不准。
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以sizeof(T)来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。 还有一个衍生问题就是&#43;&#43;和--运算符，对于一个简单类型的变量/指针来说，i&#43;&#43;和&#43;&#43;i（--同理）没什么区别，都是计算机的add指令之类的，但是对于指针，这个区别很大，主要在于i&#43;&#43;需要执行构造函数，而&#43;&#43;i不需要，这里又是开销的问题。所以以后我觉得还是把&#43;&#43;作为“向后移动一位”的意思来理解吧。
+&lt;4&gt;delete和delete[]的区别 这个也是因为我不怎么写c&#43;&#43;的指针相关内容导致的。
+delete只释放了后面跟的一个对象的那一块内存，而delete[]释放了后面跟着的一大块内存。 我们这里扩容声明的新内存都是通过new[]的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用delete[]会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。
+(2)防御性编程 这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c&#43;&#43;的设计哲学罢。
+(3)size_t的用途 size_t这东西实际上就是专门用来存储容器大小数据的类型，所以包括size()、capacity在内的方法返回值都是size_t，for循环遍历的时候如果不用iterator也要用size_t来声明循环变量。
+2.基本功能 vector实际上维护的是一块连续的内存，而我们只需要手动维护start，finish和end_of_storage指针。
+(1)push_back push_back的逻辑很简单，首先检查finish == end_of_storage是否成立，如果成立说明需要扩容，不成立就直接添加元素。
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回3221225477了。
+我们可以申请一块新内存：T* new_mem = new T[new_capacity]，然后将数据一个一个放进new_mem里面，这样就完成了扩容。
+new_capacity是依情况而定的，如果capacity() == 0那么new_capacity为1，否则直接翻倍。 无论是否扩容，我们都要执行*finish = val; &#43;&#43;finish的类似语句，这样一个push_back就完成了。
+(2)insert和erase 这俩玩意逻辑挺相似的。
+insert同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来index，扩容完毕以后用pos = start &#43; index加回来就好。
+而insert的移动元素是从后往前挪，从finish这个空位开始依次执行*it = *(it - 1)（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。
+腾出来相应的位置直接*pos = val就好了。很简单。最后&#43;&#43;finish。
+erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos == finish并返回nullptr即可。
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行--finish; finish-&gt;~T()（因为原来的finish前一位是有数据的，这里给它释放置空）。
+...</p>
   </div>
   <footer class="entry-footer">
 

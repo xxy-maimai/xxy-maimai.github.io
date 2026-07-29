@@ -30,7 +30,7 @@ title = '对vector的较高级实现'
 ### (2)```resize```
 ```resize```很麻烦，我们一点点看。  
 首先，我们要明白```resize```可能缩小容量也可能增大容量，所以要条件判断。  
-如果是缩容，我们直接把尾部数据```destroy```，最后```_finish = _start + new_size```就ok了。
+如果是缩容，我们直接把尾部数据```destroy```，最后```_finish = _start + new_size```就ok了。  
 如果是扩容，我们还得分类讨论。  
 情况一是```new_size <= old_capacity```，此时无需扩容；情况二是```new_size > old_capacity```，此时```new_capacity```的值还需要通过计算```max(new_size, old_capacity * 2)```来确定。  
 无论哪种情况，新```allocate```的内存都要```construct```一次，这里用的重载就没有值了，表示默认构造。

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on XxyBlog</title><link>https://xxy-maimai.github.io/posts/</link><description>Recent content in Posts on XxyBlog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 02 Aug 2026 19:51:23 +0800</lastBuildDate><atom:link href="https://xxy-maimai.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>4k模拟器更新</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/</link><pubDate>Sun, 02 Aug 2026 19:51:23 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/</guid><description>&lt;h1 id="更新内容"&gt;更新内容&lt;/h1&gt;
+&lt;p&gt;也是更新了一波这个小玩具。&lt;br&gt;
+这次更新加了一个简陋到只有三个按钮的主界面，分别是开始、设置和关于。&lt;br&gt;
+开始顾名思义开始游戏。&lt;br&gt;
+设置里面分为三项，流速，输入偏移和按键绑定。&lt;br&gt;
+流速、偏移使用按钮调节，按键绑定进去按顺序按四个键就好。&lt;br&gt;
+关于是写的不如不写的类似readme的东西。&lt;/p&gt;
+&lt;h1 id="开发历程"&gt;开发历程&lt;/h1&gt;
+&lt;p&gt;其实这次最大的精力都放在界面交互上了，raylib包括别的一些库当然也没有内置的交互接口，只能自己搓一坨大便出来。&lt;br&gt;
+然后是关于，英文版是自己写+ai改出来的，可能也有词不达意的地方。。。算了就这样吧。&lt;/p&gt;</description></item><item><title>对vector的较高级实现</title><link>https://xxy-maimai.github.io/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</link><pubDate>Wed, 29 Jul 2026 09:49:41 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</guid><description>&lt;p&gt;昨天写完那篇blog之后继续写了vector，写到今天上午大致完工了。&lt;br&gt;
+写完这堆以后收获也是颇丰，依旧简单写写笔记。&lt;/p&gt;
+&lt;h2 id="1写在前面"&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id="1学到的知识"&gt;(1)学到的知识&lt;/h3&gt;
+&lt;h4 id="1stdallocator的应用"&gt;&amp;lt;1&amp;gt;&lt;code&gt;std::allocator&lt;/code&gt;的应用&lt;/h4&gt;
+&lt;p&gt;是的没错，我用&lt;code&gt;std::allocator&lt;/code&gt;重构了所有内容。&lt;br&gt;
+这个东西确实是很好用，也便于内存管理。&lt;br&gt;
+这次我主要用了四个方法：&lt;code&gt;allocate&lt;/code&gt;、&lt;code&gt;deallocate&lt;/code&gt;、&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;。&lt;br&gt;
+首先是&lt;code&gt;allocate&lt;/code&gt;，我用的是&lt;code&gt;allocate(容量)&lt;/code&gt;这一重载，用于申请一块没有任何内容的内存。&lt;br&gt;
+然后是&lt;code&gt;deallocate&lt;/code&gt;，使用&lt;code&gt;deallocate(内存开头，容量)&lt;/code&gt;这一重载，用于释放一块内存。&lt;br&gt;
+接着是&lt;code&gt;construct&lt;/code&gt;，使用&lt;code&gt;construct(内存地址，值)&lt;/code&gt;重载，用于在申请的内存上构建一个元素。&lt;br&gt;
+最后是&lt;code&gt;destroy&lt;/code&gt;，使用&lt;code&gt;destroy(内存地址)&lt;/code&gt;重载，用于析构指定地址的元素。&lt;br&gt;
+这四个方法直接替代了&lt;code&gt;new[] - delete[]&lt;/code&gt;关键字，体现了c++对于开发人员的高自由度。（不如说是高bug发生率）&lt;/p&gt;
+&lt;h3 id="2关于异常处理"&gt;(2)关于异常处理&lt;/h3&gt;
+&lt;p&gt;我并没有写异常处理，毕竟这只是一个练手项目。如果我有精力的话我可能会补上。&lt;/p&gt;
+&lt;h3 id="3利用stdallocator重构insert和erase的坑"&gt;(3)利用&lt;code&gt;std::allocator&lt;/code&gt;重构&lt;code&gt;insert&lt;/code&gt;和&lt;code&gt;erase&lt;/code&gt;的坑&lt;/h3&gt;
+&lt;p&gt;我们要明白一个事，&lt;code&gt;allocator&lt;/code&gt;开辟的内存是野的，直接访问赋值会出问题，因为在内存上没有任何构造，只能以&lt;code&gt;construct&lt;/code&gt;方式赋值。&lt;br&gt;
+我被这个坑了。不过都是小问题，改两笔的事。&lt;br&gt;
+问题具体出现在挪元素和赋值新元素的地方，不过都好改。很简单解决。&lt;/p&gt;
+&lt;h2 id="2实现的功能"&gt;2.实现的功能&lt;/h2&gt;
+&lt;h3 id="1reserve"&gt;(1)&lt;code&gt;reserve&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;reserve&lt;/code&gt;是用于预订空间的，也就是扩容。&lt;br&gt;
+这里的实现其实蛮简单的，就是普通的扩容操作，前面写过好多次了。&lt;/p&gt;
+&lt;h3 id="2resize"&gt;(2)&lt;code&gt;resize&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;resize&lt;/code&gt;很麻烦，我们一点点看。&lt;br&gt;
+首先，我们要明白&lt;code&gt;resize&lt;/code&gt;可能缩小容量也可能增大容量，所以要条件判断。&lt;br&gt;
+如果是缩容，我们直接把尾部数据&lt;code&gt;destroy&lt;/code&gt;，最后&lt;code&gt;_finish = _start + new_size&lt;/code&gt;就ok了。&lt;br&gt;
+如果是扩容，我们还得分类讨论。&lt;br&gt;
+情况一是&lt;code&gt;new_size &amp;lt;= old_capacity&lt;/code&gt;，此时无需扩容；情况二是&lt;code&gt;new_size &amp;gt; old_capacity&lt;/code&gt;，此时&lt;code&gt;new_capacity&lt;/code&gt;的值还需要通过计算&lt;code&gt;max(new_size, old_capacity * 2)&lt;/code&gt;来确定。&lt;br&gt;
+无论哪种情况，新&lt;code&gt;allocate&lt;/code&gt;的内存都要&lt;code&gt;construct&lt;/code&gt;一次，这里用的重载就没有值了，表示默认构造。&lt;/p&gt;
+&lt;h3 id="3shrink_to_fit"&gt;(3)&lt;code&gt;shrink_to_fit&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这个也蛮简单的。开辟一块新内存，大小等于&lt;code&gt;size()&lt;/code&gt;，把数据丢进去，释放原内存，改指针，完事。&lt;/p&gt;
+&lt;h2 id="3总结"&gt;3.总结&lt;/h2&gt;
+&lt;p&gt;写完这个vector，确实是懂了很多内存的相关知识和思想，现在写底层的确实越来越少了，希望以后能锻炼这方面的能力吧。&lt;/p&gt;</description></item><item><title>对vector的简单实现</title><link>https://xxy-maimai.github.io/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</link><pubDate>Tue, 28 Jul 2026 09:17:44 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/</guid><description>&lt;p&gt;最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。&lt;br&gt;
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。&lt;br&gt;
+当然我没用&lt;code&gt;std::allocator&lt;/code&gt;实现分配内存，我只用了&lt;code&gt;new&lt;/code&gt;和&lt;code&gt;delete&lt;/code&gt;。&lt;br&gt;
+简单写写笔记。&lt;/p&gt;
+&lt;h2 id="1写在前面"&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id="1学到的一些语法知识"&gt;(1)学到的一些语法知识&lt;/h3&gt;
+&lt;h4 id="1const限定类方法"&gt;&amp;lt;1&amp;gt;&lt;code&gt;const&lt;/code&gt;限定类方法&lt;/h4&gt;
+&lt;p&gt;之前我没有仔细研究过c++的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：&lt;code&gt;void f() {}&lt;/code&gt;时，如果创建的是&lt;code&gt;const&lt;/code&gt;对象，需要在结尾加上一个&lt;code&gt;const&lt;/code&gt;修饰符表明这个方法对于&lt;code&gt;const&lt;/code&gt;对象可用（e.g. &lt;code&gt;void f() const {}&lt;/code&gt;），以前还真没注意过。&lt;/p&gt;
+&lt;h4 id="2常引用传参"&gt;&amp;lt;2&amp;gt;常引用传参&lt;/h4&gt;
+&lt;p&gt;这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。&lt;br&gt;
+普通传参如&lt;code&gt;void f(int x) {}&lt;/code&gt;，此时&lt;code&gt;x&lt;/code&gt;是要进行拷贝的，如果说&lt;code&gt;x&lt;/code&gt;不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：&lt;code&gt;void f(const T&amp;amp; x) {}&lt;/code&gt;减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。&lt;br&gt;
+这里的常引用传参实际上就是访问了传进来参数的数据，并且&lt;code&gt;const&lt;/code&gt;限定了以只读形式访问，安全性up。&lt;/p&gt;
+&lt;h4 id="3指针加减法"&gt;&amp;lt;3&amp;gt;指针加减法&lt;/h4&gt;
+&lt;p&gt;没想到我还能在这种基础问题上拿不准。&lt;br&gt;
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以&lt;code&gt;sizeof(T)&lt;/code&gt;来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。
+还有一个衍生问题就是&lt;code&gt;++&lt;/code&gt;和&lt;code&gt;--&lt;/code&gt;运算符，对于一个简单类型的变量/指针来说，&lt;code&gt;i++&lt;/code&gt;和&lt;code&gt;++i&lt;/code&gt;（&lt;code&gt;--&lt;/code&gt;同理）没什么区别，都是计算机的&lt;code&gt;add&lt;/code&gt;指令之类的，但是对于指针，这个区别很大，主要在于&lt;code&gt;i++&lt;/code&gt;需要执行构造函数，而&lt;code&gt;++i&lt;/code&gt;不需要，这里又是开销的问题。所以以后我觉得还是把&lt;code&gt;++&lt;/code&gt;作为“向后移动一位”的意思来理解吧。&lt;/p&gt;
+&lt;h4 id="4delete和delete的区别"&gt;&amp;lt;4&amp;gt;&lt;code&gt;delete&lt;/code&gt;和&lt;code&gt;delete[]&lt;/code&gt;的区别&lt;/h4&gt;
+&lt;p&gt;这个也是因为我不怎么写c++的指针相关内容导致的。&lt;br&gt;
+&lt;code&gt;delete&lt;/code&gt;只释放了后面跟的一个对象的那一块内存，而&lt;code&gt;delete[]&lt;/code&gt;释放了后面跟着的一大块内存。
+我们这里扩容声明的新内存都是通过&lt;code&gt;new[]&lt;/code&gt;的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用&lt;code&gt;delete[]&lt;/code&gt;会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。&lt;/p&gt;
+&lt;h3 id="2防御性编程"&gt;(2)防御性编程&lt;/h3&gt;
+&lt;p&gt;这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c++的设计哲学罢。&lt;/p&gt;
+&lt;h3 id="3size_t的用途"&gt;(3)size_t的用途&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;size_t&lt;/code&gt;这东西实际上就是专门用来存储容器大小数据的类型，所以包括&lt;code&gt;size()&lt;/code&gt;、&lt;code&gt;capacity&lt;/code&gt;在内的方法返回值都是&lt;code&gt;size_t&lt;/code&gt;，&lt;code&gt;for&lt;/code&gt;循环遍历的时候如果不用&lt;code&gt;iterator&lt;/code&gt;也要用&lt;code&gt;size_t&lt;/code&gt;来声明循环变量。&lt;/p&gt;
+&lt;h2 id="2基本功能"&gt;2.基本功能&lt;/h2&gt;
+&lt;p&gt;vector实际上维护的是一块连续的内存，而我们只需要手动维护&lt;code&gt;start&lt;/code&gt;，&lt;code&gt;finish&lt;/code&gt;和&lt;code&gt;end_of_storage&lt;/code&gt;指针。&lt;/p&gt;
+&lt;h3 id="1push_back"&gt;(1)&lt;code&gt;push_back&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;push_back&lt;/code&gt;的逻辑很简单，首先检查&lt;code&gt;finish == end_of_storage&lt;/code&gt;是否成立，如果成立说明需要扩容，不成立就直接添加元素。&lt;br&gt;
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回&lt;code&gt;3221225477&lt;/code&gt;了。&lt;br&gt;
+我们可以申请一块新内存：&lt;code&gt;T* new_mem = new T[new_capacity]&lt;/code&gt;，然后将数据一个一个放进&lt;code&gt;new_mem&lt;/code&gt;里面，这样就完成了扩容。&lt;br&gt;
+&lt;code&gt;new_capacity&lt;/code&gt;是依情况而定的，如果&lt;code&gt;capacity() == 0&lt;/code&gt;那么&lt;code&gt;new_capacity&lt;/code&gt;为&lt;code&gt;1&lt;/code&gt;，否则直接翻倍。
+无论是否扩容，我们都要执行&lt;code&gt;*finish = val; ++finish&lt;/code&gt;的类似语句，这样一个&lt;code&gt;push_back&lt;/code&gt;就完成了。&lt;/p&gt;
+&lt;h3 id="2insert和erase"&gt;(2)&lt;code&gt;insert&lt;/code&gt;和&lt;code&gt;erase&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这俩玩意逻辑挺相似的。&lt;br&gt;
+&lt;code&gt;insert&lt;/code&gt;同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来&lt;code&gt;index&lt;/code&gt;，扩容完毕以后用&lt;code&gt;pos = start + index&lt;/code&gt;加回来就好。&lt;br&gt;
+而&lt;code&gt;insert&lt;/code&gt;的移动元素是从后往前挪，从&lt;code&gt;finish&lt;/code&gt;这个空位开始依次执行&lt;code&gt;*it = *(it - 1)&lt;/code&gt;（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。&lt;br&gt;
+腾出来相应的位置直接&lt;code&gt;*pos = val&lt;/code&gt;就好了。很简单。最后&lt;code&gt;++finish&lt;/code&gt;。&lt;br&gt;
+&lt;code&gt;erase&lt;/code&gt;相对简单，它不用考虑扩容问题，只需要判断&lt;code&gt;empty() || pos == finish&lt;/code&gt;并返回&lt;code&gt;nullptr&lt;/code&gt;即可。&lt;br&gt;
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行&lt;code&gt;--finish; finish-&amp;gt;~T()&lt;/code&gt;（因为原来的finish前一位是有数据的，这里给它释放置空）。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(4)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/</link><pubDate>Mon, 20 Jul 2026 16:54:03 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/</guid><description>&lt;p&gt;天啊，今天我居然又有精神写这个东西，而且我还给写完了。&lt;br&gt;
+今天修了点bug，然后加了字符串解析，以及优化了一些其他的东西。&lt;br&gt;
+字符串解析的话，以&amp;quot;&amp;amp;&amp;ldquo;字符开头的均为元数据，即偏移、bpm以及拍号；tap以单独数字表示，hold以数字+h+持续拍号+冒号+持续时值表示，逗号分隔，加号表示多押，这些都很好写，比我去年写simai语法解析简单多了。&lt;br&gt;
+顺便学习了一波json解析，也是很简单，阅读设置文件用到了。&lt;br&gt;
+这样的话这个项目大概就完成了，先这样吧。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(3)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/</link><pubDate>Sun, 19 Jul 2026 21:29:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/</guid><description>&lt;p&gt;孩子们，今天我也是工作量超标了。我居然有劲头给hold的渲染以及判定全都写好。&lt;br&gt;
+到头来也没有认真读osu源码，还是自己想的居多，虽然也问ai参考了一下逻辑，但是全是自己写的代码，无ai成分。&lt;br&gt;
+具体实现逻辑其实并不难，渲染的话，复制平铺这一点我想到了，但是尾部的裁剪我是没考虑到，所以尝试实现了；在判定时轨道底部会有蒙版造出来吃掉的感觉，也实现出来了。&lt;br&gt;
+判定的话，也是加了一些奇奇怪怪的bool值给他做出来了。其实也不算太复杂。&lt;br&gt;
+今天可是给我累死了，先这样吧。&lt;/p&gt;</description></item><item><title>伟大的决定</title><link>https://xxy-maimai.github.io/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/</link><pubDate>Sat, 18 Jul 2026 19:46:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/</guid><description>&lt;p&gt;哎。感觉还是不能糊弄的写完4k模拟器。所以我决定阅读osu的源码，学习一下它的处理逻辑。这将会很疯狂。&lt;br&gt;
+这个源码其实读起来不算简单。毕竟是大项目，很多叠了好几层文件的方法和类。不过我会尽力尝试。&lt;br&gt;
+而且我斥巨资购买的5块deepseek api还没用完呢。我得用用，辅助我读源码。就这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(2)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/</link><pubDate>Wed, 15 Jul 2026 21:24:04 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/</guid><description>&lt;p&gt;今天又写了点。已经把主要内容写完了。&lt;br&gt;
+优化了下代码结构，然后补充了点新内容，现在播放正常谱面并且游玩已经可以了。唯一的遗憾是这个hold的逻辑我写的是一坨屎。&lt;br&gt;
+具体原因就是hold头同tap判定，hold身体和尾巴按住就判，但是这个按住吧，它是不受hold头影响的。也就是hold头完全没有起到控制后续hold的作用。这点，当作feature吧。&lt;br&gt;
+现在只差读取谱面文件翻译播放了。但是这个不太好做，我一向是不擅长写字符串解析的。哎。想写了再写吧。有点无助。先这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(1)</title><link>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</link><pubDate>Tue, 14 Jul 2026 21:43:33 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</guid><description>&lt;p&gt;上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。&lt;br&gt;
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。&lt;br&gt;
+简单说说开发思路吧。&lt;br&gt;
+使用C# + Raylib进行开发。&lt;br&gt;
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。&lt;br&gt;
+音乐播放直接用raylib内置播放api了。省时省力。&lt;br&gt;
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。&lt;br&gt;
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&amp;gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。&lt;br&gt;
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。&lt;br&gt;
+先写到这吧。洗洗睡了。还得大战作业。&lt;/p&gt;</description></item><item><title>带空气阻力下落运动v-t关系式推导</title><link>https://xxy-maimai.github.io/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/</link><pubDate>Mon, 13 Jul 2026 10:55:47 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/</guid><description>&lt;p&gt;哎。心酸。本来在我朋友的博客上写过了一次这个东西。结果经历一周访问不了他也不修。我只能提着昨日种种千辛万苦。&lt;br&gt;
+但是我居然™的从ai聊天记录里翻出来了这篇，虽然翻出来的计算结果是错的，但是我能再改改用。可惜的是还有两篇找不到。我还得自己写一遍。不过那两篇一个是高考题。一个是未解决的问题。无所吊谓说是。&lt;br&gt;
+正文：&lt;br&gt;
+我们受力分析：
+&lt;/p&gt;
+$$mg-f=ma$$&lt;p&gt;
+将$f=\frac{1}{2}\rho Sv^2$代入，并且写为微分形式：
+&lt;/p&gt;
+$$\frac{1}{m}(mg-\frac{1}{2}\rho Sv^2) = \frac{dv}{dt}$$&lt;p&gt;
+分离变量：
+&lt;/p&gt;
+$$dt=\frac{m}{mg-\frac{1}{2}\rho Sv^2}\cdot dv$$&lt;p&gt;
+积分：
+&lt;/p&gt;
+$$\int dt=\int \frac{m}{mg-\frac{1}{2}\rho Sv^2} dv$$&lt;p&gt;
+接下来处理积分问题。
+&lt;/p&gt;
+$$\int \frac{m}{mg-\frac{1}{2}\rho Sv^2}dv=m\int\frac{1}{mg-\frac{1}{2}\rho Sv^2}dv$$&lt;p&gt;
+我们研究如下形式的积分：
+&lt;/p&gt;
+$$\int \frac{1}{a-bv^2}dv=\int\left(\frac{A}{\sqrt{a}+\sqrt{b}v}+\frac{B}{\sqrt{a}-\sqrt{b}v}\right)dv$$&lt;p&gt;
+通分，得到&lt;/p&gt;
+$$\sqrt{a}(A+B)+\sqrt{b}v(B-A)=1$$&lt;p&gt;
+则
+&lt;/p&gt;
+$$
+\begin{cases}
+\sqrt{a}\,(A+B)=1 \\
+B-A=0
+\end{cases}
+$$&lt;p&gt;
+解得&lt;/p&gt;
+$$A=B=\frac{1}{2\sqrt{a}}$$&lt;p&gt;
+代回积分式，整理得到
+&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\left(\int \frac{1}{v+\sqrt{\frac{a}{b}}}dv - \int \frac{1}{v-\sqrt{\frac{a}{b}}}dv\right)$$&lt;p&gt;
+积分并整理得到&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\ln\left|\frac{\sqrt{a}+\sqrt{b}v}{\sqrt{a}-\sqrt{b}v}\right|+C$$&lt;p&gt;
+代入$a=mg$，$b=\frac{1}{2}\rho S$得到原积分等于
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+亦即
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+推导完毕。&lt;br&gt;
+P.S.反解的话，我懒得搞了。好像可以用反双曲正切搞？随便了。&lt;/p&gt;</description></item><item><title>Test</title><link>https://xxy-maimai.github.io/posts/test/</link><pubDate>Sat, 11 Jul 2026 11:36:02 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/test/</guid><description>&lt;p&gt;这是一个测试文章，也是此博客第一个文章。欢迎来玩。&lt;/p&gt;</description></item></channel></rss>

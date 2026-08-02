@@ -6,8 +6,24 @@
     <description>Recent content on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 29 Jul 2026 09:49:41 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 02 Aug 2026 19:51:23 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>4k模拟器更新</title>
+      <link>http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/</link>
+      <pubDate>Sun, 02 Aug 2026 19:51:23 +0800</pubDate>
+      <guid>http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/</guid>
+      <description>&lt;h1 id=&#34;更新内容&#34;&gt;更新内容&lt;/h1&gt;
+&lt;p&gt;也是更新了一波这个小玩具。&lt;br&gt;
+这次更新加了一个简陋到只有三个按钮的主界面，分别是开始、设置和关于。&lt;br&gt;
+开始顾名思义开始游戏。&lt;br&gt;
+设置里面分为三项，流速，输入偏移和按键绑定。&lt;br&gt;
+流速、偏移使用按钮调节，按键绑定进去按顺序按四个键就好。&lt;br&gt;
+关于是写的不如不写的类似readme的东西。&lt;/p&gt;
+&lt;h1 id=&#34;开发历程&#34;&gt;开发历程&lt;/h1&gt;
+&lt;p&gt;其实这次最大的精力都放在界面交互上了，raylib包括别的一些库当然也没有内置的交互接口，只能自己搓一坨大便出来。&lt;br&gt;
+然后是关于，英文版是自己写+ai改出来的，可能也有词不达意的地方。。。算了就这样吧。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>对vector的较高级实现</title>
       <link>http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/</link>
@@ -39,7 +55,10 @@
 &lt;h3 id=&#34;2resize&#34;&gt;(2)&lt;code&gt;resize&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;&lt;code&gt;resize&lt;/code&gt;很麻烦，我们一点点看。&lt;br&gt;
 首先，我们要明白&lt;code&gt;resize&lt;/code&gt;可能缩小容量也可能增大容量，所以要条件判断。&lt;br&gt;
-如果是缩容，我们直接把尾部数据&lt;code&gt;destroy&lt;/code&gt;，最后&lt;code&gt;_finish = _start + new_size&lt;/code&gt;就ok了。&lt;/p&gt;
+如果是缩容，我们直接把尾部数据&lt;code&gt;destroy&lt;/code&gt;，最后&lt;code&gt;_finish = _start + new_size&lt;/code&gt;就ok了。&lt;br&gt;
+如果是扩容，我们还得分类讨论。&lt;br&gt;
+情况一是&lt;code&gt;new_size &amp;lt;= old_capacity&lt;/code&gt;，此时无需扩容；情况二是&lt;code&gt;new_size &amp;gt; old_capacity&lt;/code&gt;，此时&lt;code&gt;new_capacity&lt;/code&gt;的值还需要通过计算&lt;code&gt;max(new_size, old_capacity * 2)&lt;/code&gt;来确定。&lt;br&gt;
+无论哪种情况，新&lt;code&gt;allocate&lt;/code&gt;的内存都要&lt;code&gt;construct&lt;/code&gt;一次，这里用的重载就没有值了，表示默认构造。&lt;/p&gt;
 &lt;h3 id=&#34;3shrink_to_fit&#34;&gt;(3)&lt;code&gt;shrink_to_fit&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;这个也蛮简单的。开辟一块新内存，大小等于&lt;code&gt;size()&lt;/code&gt;，把数据丢进去，释放原内存，改指针，完事。&lt;/p&gt;
 &lt;h2 id=&#34;3总结&#34;&gt;3.总结&lt;/h2&gt;

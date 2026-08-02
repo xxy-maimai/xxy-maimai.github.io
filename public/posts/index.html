@@ -128,17 +128,56 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">4k模拟器更新
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>更新内容 也是更新了一波这个小玩具。
+这次更新加了一个简陋到只有三个按钮的主界面，分别是开始、设置和关于。
+开始顾名思义开始游戏。
+设置里面分为三项，流速，输入偏移和按键绑定。
+流速、偏移使用按钮调节，按键绑定进去按顺序按四个键就好。
+关于是写的不如不写的类似readme的东西。
+开发历程 其实这次最大的精力都放在界面交互上了，raylib包括别的一些库当然也没有内置的交互接口，只能自己搓一坨大便出来。
+然后是关于，英文版是自己写&#43;ai改出来的，可能也有词不达意的地方。。。算了就这样吧。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-08-02 19:51:23 +0800 CST'>August 2, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 4k模拟器更新" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">对vector的较高级实现
     </h2>
   </header>
   <div class="entry-content">
     <p>昨天写完那篇blog之后继续写了vector，写到今天上午大致完工了。
 写完这堆以后收获也是颇丰，依旧简单写写笔记。
-1.写在前面 (1)学到的知识 &lt;1&gt; std::allocator的应用 是的没错，我用std::allocator重构了所有内容。
+1.写在前面 (1)学到的知识 &lt;1&gt;std::allocator的应用 是的没错，我用std::allocator重构了所有内容。
 这个东西确实是很好用，也便于内存管理。
 这次我主要用了四个方法：allocate、deallocate、construct和destroy。
-首先是allocate，我用的是allocate(容量)这一重载，用于申请一块没有任何内容的内存。 然后是deallocate，使用deallocate(内存开头，容量)这一重载，用于释放一块内存。 接着是construct，使用construct(内存地址，值)重载，用于在申请的内存上构建一个元素。 最后是destroy，使用destroy(内存地址)重载，用于析构指定地址的元素。 这四个方法直接替代了new[] - delete[]关键字，体现了c&#43;&#43;对于开发人员的高自由度。（不如说是高bug发生率）
+首先是allocate，我用的是allocate(容量)这一重载，用于申请一块没有任何内容的内存。
+然后是deallocate，使用deallocate(内存开头，容量)这一重载，用于释放一块内存。
+接着是construct，使用construct(内存地址，值)重载，用于在申请的内存上构建一个元素。
+最后是destroy，使用destroy(内存地址)重载，用于析构指定地址的元素。
+这四个方法直接替代了new[] - delete[]关键字，体现了c&#43;&#43;对于开发人员的高自由度。（不如说是高bug发生率）
 (2)关于异常处理 我并没有写异常处理，毕竟这只是一个练手项目。如果我有精力的话我可能会补上。
+(3)利用std::allocator重构insert和erase的坑 我们要明白一个事，allocator开辟的内存是野的，直接访问赋值会出问题，因为在内存上没有任何构造，只能以construct方式赋值。
+我被这个坑了。不过都是小问题，改两笔的事。
+问题具体出现在挪元素和赋值新元素的地方，不过都好改。很简单解决。
+2.实现的功能 (1)reserve reserve是用于预订空间的，也就是扩容。
+这里的实现其实蛮简单的，就是普通的扩容操作，前面写过好多次了。
+(2)resize resize很麻烦，我们一点点看。
+首先，我们要明白resize可能缩小容量也可能增大容量，所以要条件判断。
+如果是缩容，我们直接把尾部数据destroy，最后_finish = _start &#43; new_size就ok了。
+如果是扩容，我们还得分类讨论。
+情况一是new_size &lt;= old_capacity，此时无需扩容；情况二是new_size &gt; old_capacity，此时new_capacity的值还需要通过计算max(new_size, old_capacity * 2)来确定。
+无论哪种情况，新allocate的内存都要construct一次，这里用的重载就没有值了，表示默认构造。
+(3)shrink_to_fit 这个也蛮简单的。开辟一块新内存，大小等于size()，把数据丢进去，释放原内存，改指针，完事。
+3.总结 写完这个vector，确实是懂了很多内存的相关知识和思想，现在写底层的确实越来越少了，希望以后能锻炼这方面的能力吧。
 </p>
   </div>
   <footer class="entry-footer">

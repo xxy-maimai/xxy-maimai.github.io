@@ -159,6 +159,51 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">排卡系统开发日志(1)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一 前言 由于我实在想做点东西但又不知道做什么，我的一个sb朋友给我提了个主意，就是做一个街机排卡系统。
+目前我对这个系统的设想很简单，就是做一个前后端搭配的应用，后端负责提供排卡数据，前端供用户使用。
+后端使用c&#43;&#43; &#43; drogon开发，drogon是一个不错的框架，在c&#43;&#43;17及更高标准下编码运行。
+前端当然就可以随便开发了，只要具备访问网络的功能就都可以，目前作为简单项目先搞windows端，使用winform开发。
+功能不多，有增删查机厅，排队、出队和回到队尾等等功能。
+目前c&#43;&#43;后端的内容开发的差不多了，可以再完善完善，接下来可以搞前端。
+二 学到的知识 (1) 网络编程基本思路 这可以算是我第二次做网络编程，第一次是写了个简单chatroom，用socket实现，原理也不复杂，主要是明白了socket的通信过程。
+而这次则是真正做出一个http服务器，有诸多RESTful API可以调用。
+注册handler的过程，可以说是我学到的精华。
+首先是RESTful API的思想，这个东西我确实是第一次听说，但是它实际上就是常说的“增删改查”四种操作的集合。
+服务端最常见的四种请求也就是这四种了，所以我们要设计api应对这些请求。
+而前端访问这些api时，获取到一串数据（这个项目获取到的都是JSON字符串），再进行数据处理，实现相应的功能。
+注册handler时需要往里塞一个函数作为参数，是真正要实现的功能。
+这个函数的参数列表也有讲究。首先要放一个const HttpRequestPtr&amp; req作为接受请求内容的变量，然后需要一个std::function&lt;void (const HttpResponse&amp; resp)&gt;&amp;&amp; callback，此处resp作为存储相应内容的变量，callback是回调函数，在handler函数中要被调用。
+关于这一块内容，很多我不明白的地方（比如为什么没有给出callback的具体定义，但是它也能执行回调的功能）的答案都藏在drogon库里面，所以我暂时也懒得深究了。
+handler函数体里面需要进行业务操作，最后一定要callback一下，不然服务器等不到回调就卡死了（其实粗略、不严谨地理解，回调大概就是返回一个值）。
+注册api完毕以后就可以开始监听了。
+大体的思路就是这样。
+(2) 许多语法特性 &lt;1&gt; std::optional的应用 这个东西以前我确实没接触过，我对c&#43;&#43;11的很多特性甚至都不太了解，更别提std::optional这种c&#43;&#43;17的内容了。
+简单来说，它就是解决“当失败时，返回nullptr不安全”的问题。（当然此处nullptr可以换成其他的东西，这里举个例子）
+std::optional是一个模板类，例如我写一个函数：std::optional&lt;std::string&gt; func(){}，在里面定义一个std::optional&lt;std::string&gt; opt，然后下面查找某个东西，查找成功时写return opt，失败则写return std::nullopt，此时假如成功了，就会返回一个正常的字符串，失败时会返回std::nullopt，而这个std::nullopt就是特地指“失败”含义的一个返回值。
+如果没有std::optional，我们可能会写：return &#34;not found&#34;或者别的什么东西，再或者我们在定义函数时会写std::string* func(){}，失败时返回nullptr，但是这两种方案都不够优雅，都有安全问题。有了新标准，我们还是不要这么做的好。
+它对于增删改查这种操作十分友好，因为经常会遇到失败、冲突等等问题，调用数据类方法增删改查，返回时直接获得一个std::nullopt，就可以判断失败，还没有安全问题，在handler中优雅处理，岂不美哉。
+&lt;2&gt; 线程安全问题 线程安全的话，我前面做chatroom其实遇到过，就是对于异步的读写操作，线程之间可能有冲突，这里需要用线程锁给他锁起来防止数据紊乱。
+这个项目中，使用std::shared_mutex作为线程锁，读数据时使用std::shared_lock进行保护，写数据时使用std::unique_lock进行保护。
+这一点要说的其实不多，注意到异步线程导致的数据读写冲突问题就可以了。
+&lt;3&gt; std::function的使用 顾名思义，std::function是用于存储可复制的可调用对象的容器。说人话，它是存函数（方法）的。
+它的创建方式大概是：std::function&lt;typename (args1, args2, ...)&gt; func，其中typename代表函数返回值，(args1, args2)作为函数参数列表。
+这个东西在这个项目里主要是帮助解耦的，没有太多要提的地方，只是觉得这个确实很好用。
+&lt;4&gt; jsoncpp的使用 这个玩意应该是c&#43;&#43;中专门处理json的普遍使用库了。 它用起来还蛮方便的，比如我要创建一个json数组没必要非得在声明时就写清楚，直接Json::Value arr，后面append()直接自动搞成数组类型了。
+这个主要是在前后端通信的时候使用，也没有太多要说的。但是真的好用我靠。
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-08-12 20:35:38 +0800 CST'>August 12, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 排卡系统开发日志(1)" href="http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">4k模拟器更新
     </h2>
   </header>
@@ -374,21 +419,12 @@ P.S.反解的话，我懒得搞了。好像可以用反双曲正切搞？随便�
 <span title='2026-07-13 10:55:47 +0800 CST'>July 13, 2026</span></footer>
   <a class="entry-link" aria-label="post link to 带空气阻力下落运动v-t关系式推导" href="http://localhost:1313/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Test
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>这是一个测试文章，也是此博客第一个文章。欢迎来玩。
-</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-07-11 11:36:02 +0800 CST'>July 11, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to Test" href="http://localhost:1313/posts/test/"></a>
-</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">

@@ -6,8 +6,54 @@
     <description>Recent content in Posts on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 02 Aug 2026 19:51:23 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 12 Aug 2026 20:35:38 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>排卡系统开发日志</title>
+      <link>http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</link>
+      <pubDate>Wed, 12 Aug 2026 20:35:38 +0800</pubDate>
+      <guid>http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/</guid>
+      <description>&lt;h3 id=&#34;一-前言&#34;&gt;一 前言&lt;/h3&gt;
+&lt;p&gt;由于我实在想做点东西但又不知道做什么，我的一个sb朋友给我提了个主意，就是做一个街机排卡系统。&lt;br&gt;
+目前我对这个系统的设想很简单，就是做一个前后端搭配的应用，后端负责提供排卡数据，前端供用户使用。&lt;br&gt;
+后端使用&lt;code&gt;c++ + drogon&lt;/code&gt;开发，&lt;code&gt;drogon&lt;/code&gt;是一个不错的框架，在&lt;code&gt;c++17&lt;/code&gt;及更高标准下编码运行。&lt;br&gt;
+前端当然就可以随便开发了，只要具备访问网络的功能就都可以，目前作为简单项目先搞&lt;code&gt;windows&lt;/code&gt;端，使用&lt;code&gt;winform&lt;/code&gt;开发。&lt;br&gt;
+功能不多，有增删查机厅，排队、出队和回到队尾等等功能。&lt;br&gt;
+目前&lt;code&gt;c++&lt;/code&gt;后端的内容开发的差不多了，可以再完善完善，接下来可以搞前端。&lt;/p&gt;
+&lt;h3 id=&#34;二-学到的知识&#34;&gt;二 学到的知识&lt;/h3&gt;
+&lt;h2 id=&#34;1-网络编程基本思路&#34;&gt;(1) 网络编程基本思路&lt;/h2&gt;
+&lt;p&gt;这可以算是我第二次做网络编程，第一次是写了个简单&lt;code&gt;chatroom&lt;/code&gt;，用&lt;code&gt;socket&lt;/code&gt;实现，原理也不复杂，主要是明白了&lt;code&gt;socket&lt;/code&gt;的通信过程。&lt;br&gt;
+而这次则是真正做出一个&lt;code&gt;http&lt;/code&gt;服务器，有诸多&lt;code&gt;RESTful API&lt;/code&gt;可以调用。&lt;br&gt;
+注册&lt;code&gt;handler&lt;/code&gt;的过程，可以说是我学到的精华。&lt;br&gt;
+首先是&lt;code&gt;RESTful API&lt;/code&gt;的思想，这个东西我确实是第一次听说，但是它实际上就是常说的“增删改查”四种操作的集合。&lt;br&gt;
+服务端最常见的四种请求也就是这四种了，所以我们要设计&lt;code&gt;api&lt;/code&gt;应对这些请求。&lt;br&gt;
+而前端访问这些&lt;code&gt;api&lt;/code&gt;时，获取到一串数据（这个项目获取到的都是&lt;code&gt;JSON&lt;/code&gt;字符串），再进行数据处理，实现相应的功能。&lt;br&gt;
+注册&lt;code&gt;handler&lt;/code&gt;时需要往里塞一个函数作为参数，是真正要实现的功能。&lt;br&gt;
+这个函数的参数列表也有讲究。首先要放一个&lt;code&gt;const HttpRequestPtr&amp;amp; req&lt;/code&gt;作为接受请求内容的变量，然后需要一个&lt;code&gt;std::function&amp;lt;void (const HttpResponse&amp;amp; resp)&amp;gt;&amp;amp;&amp;amp; callback&lt;/code&gt;，此处&lt;code&gt;resp&lt;/code&gt;作为存储相应内容的变量，&lt;code&gt;callback&lt;/code&gt;是回调函数，在&lt;code&gt;handler&lt;/code&gt;函数中要被调用。&lt;br&gt;
+关于这一块内容，很多我不明白的地方（比如为什么没有给出&lt;code&gt;callback&lt;/code&gt;的具体定义，但是它也能执行回调的功能）的答案都藏在&lt;code&gt;drogon&lt;/code&gt;库里面，所以我暂时也懒得深究了。&lt;br&gt;
+&lt;code&gt;handler函数体&lt;/code&gt;里面需要进行业务操作，最后一定要&lt;code&gt;callback&lt;/code&gt;一下，不然服务器等不到回调就卡死了（其实粗略、不严谨地理解，回调大概就是返回一个值）。&lt;br&gt;
+注册&lt;code&gt;api&lt;/code&gt;完毕以后就可以开始监听了。&lt;br&gt;
+大体的思路就是这样。&lt;/p&gt;
+&lt;h2 id=&#34;2-许多语法特性&#34;&gt;(2) 许多语法特性&lt;/h2&gt;
+&lt;h1 id=&#34;1-stdoptional的应用&#34;&gt;&amp;lt;1&amp;gt; std::optional的应用&lt;/h1&gt;
+&lt;p&gt;这个东西以前我确实没接触过，我对c++11的很多特性甚至都不太了解，更别提std::optional这种c++17的内容了。&lt;br&gt;
+简单来说，它就是解决“当失败时，返回nullptr不安全”的问题。（当然此处nullptr可以换成其他的东西，这里举个例子）&lt;br&gt;
+&lt;code&gt;std::optional&lt;/code&gt;是一个模板类，例如我写一个函数：&lt;code&gt;std::optional&amp;lt;std::string&amp;gt; func(){}&lt;/code&gt;，在里面定义一个&lt;code&gt;std::optional&amp;lt;std::string&amp;gt; opt&lt;/code&gt;，然后下面查找某个东西，查找成功时写&lt;code&gt;return opt&lt;/code&gt;，失败则写&lt;code&gt;return std::nullopt&lt;/code&gt;，此时假如成功了，就会返回一个正常的字符串，失败时会返回&lt;code&gt;std::nullopt&lt;/code&gt;，而这个&lt;code&gt;std::nullopt&lt;/code&gt;就是特地指“失败”含义的一个返回值。&lt;br&gt;
+如果没有&lt;code&gt;std::optional&lt;/code&gt;，我们可能会写：&lt;code&gt;return &amp;quot;not found&amp;quot;&lt;/code&gt;或者别的什么东西，再或者我们在定义函数时会写&lt;code&gt;std::string* func(){}&lt;/code&gt;，失败时返回&lt;code&gt;nullptr&lt;/code&gt;，但是这两种方案都不够优雅，都有安全问题。有了新标准，我们还是不要这么做的好。&lt;br&gt;
+它对于增删改查这种操作十分友好，因为经常会遇到失败、冲突等等问题，调用数据类方法增删改查，返回时直接获得一个&lt;code&gt;std::nullopt&lt;/code&gt;，就可以判断失败，还没有安全问题，在&lt;code&gt;handler&lt;/code&gt;中优雅处理，岂不美哉。&lt;/p&gt;
+&lt;h1 id=&#34;2-线程安全问题&#34;&gt;&amp;lt;2&amp;gt; 线程安全问题&lt;/h1&gt;
+&lt;p&gt;线程安全的话，我前面做&lt;code&gt;chatroom&lt;/code&gt;其实遇到过，就是对于异步的读写操作，线程之间可能有冲突，这里需要用线程锁给他锁起来防止数据紊乱。&lt;br&gt;
+这个项目中，使用&lt;code&gt;std::shared_mutex&lt;/code&gt;作为线程锁，读数据时使用&lt;code&gt;std::shared_lock&lt;/code&gt;进行保护，写数据时使用&lt;code&gt;std::unique_lock&lt;/code&gt;进行保护。&lt;br&gt;
+这一点要说的其实不多，注意到异步线程导致的数据读写冲突问题就可以了。&lt;/p&gt;
+&lt;h1 id=&#34;3-stdfunction的使用&#34;&gt;&amp;lt;3&amp;gt; std::function的使用&lt;/h1&gt;
+&lt;p&gt;顾名思义，&lt;code&gt;std::function&lt;/code&gt;是用于存储可复制的可调用对象的容器。说人话，它是存函数（方法）的。&lt;br&gt;
+它的创建方式大概是：&lt;code&gt;std::function&amp;lt;typename (args1, args2, ...)&amp;gt; func&lt;/code&gt;，其中&lt;code&gt;typename&lt;/code&gt;代表函数返回值，&lt;code&gt;(args1, args2)&lt;/code&gt;作为函数参数列表。&lt;br&gt;
+这个东西在这个项目里主要是帮助解耦的，没有太多要提的地方，只是觉得这个确实很好用。&lt;/p&gt;
+&lt;h1 id=&#34;4-jsoncpp的使用&#34;&gt;&amp;lt;4&amp;gt; jsoncpp的使用&lt;/h1&gt;
+&lt;p&gt;这个玩意应该是&lt;code&gt;c++&lt;/code&gt;中专门处理&lt;code&gt;json&lt;/code&gt;的普遍使用库了。
+它用起来还蛮方便的，比如我要创建一个&lt;code&gt;json&lt;/code&gt;数组没必要非得在声明时就写清楚，直接&lt;code&gt;Json::Value arr&lt;/code&gt;，后面&lt;code&gt;append()&lt;/code&gt;直接自动搞成数组类型了。&lt;br&gt;
+这个主要是在前后端通信的时候使用，也没有太多要说的。但是真的好用我靠。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>4k模拟器更新</title>
       <link>http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/</link>

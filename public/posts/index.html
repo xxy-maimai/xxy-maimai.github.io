@@ -128,7 +128,54 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">排卡系统开发日志
+    <h2 class="entry-hint-parent">小型STL开发日志 allocator(1)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一 前言&#43;碎碎念 肯定有人会奇怪为什么排卡系统不继续写了，我先解释一下。
+其实写排卡系统的时候，我就想着锻炼后端能力就行，前端随意，做的丑点也随便，于是我拿起winform就开干，但是做一半我突然感觉拖控件设置属性什么的太麻烦了，而且界面不仅丑，更是几乎不知道怎么设计。
+于是我问了问ai怎么把C#的技术栈完美迁移到前端，它给了我blazor这个选项，我就浅浅试了一下。但是做着做着我又没什么耐心了，毕竟前端要注意设计界面什么的，我实在是懒得搞。这种活还是留给ai干，前端佬活该被裁（手动狗头保命）。
+于是我又陷入了百无聊赖的境界。我打开大肥鱼问了一下目前C&#43;&#43;和C#的技术方向，大肥鱼在C&#43;&#43;上再次推荐了底层。我想着不如就再写写STL吧，反正我挺喜欢这一块的（也许这会导致我成为冯诺1曼派，无所谓了）。
+依旧询问大肥鱼，得知写STL第一步要做出allocator来。于是我开始写，写到一半被狠狠震撼了开始写这一篇。
+二 学到的知识 (1) 有关allocator本身 allocator就是古C&#43;&#43;掌管任何容器的神，离了它谁也跑不起来，因为它是负责分配内存的模板类。
+其设计思想为分配内存和填入数据分离，分别由两套相对的基本功能实现。 基本功能就四个，之前写vector的时候我也见识过了：allocate，deallocate，construct和destroy。
+一套是allocate和deallocate，一个负责分配内存，一个负责回收内存。 另一套是construct和destroy，一个负责填入数据，一个负责清除数据。 写起来仍然要借助一些底层库，不过借助的都是一些像malloc之类的不得不用的方法。
+(2) 四个方法的实现 这四个方法都是建立的那一方难，摧毁的那一方简单。果然这个世界是熵增的吗。（不过如果说内存重置为0，也算是熵减。。又在发癫了）
+allocate需要malloc一块内存，成功返回内存，失败返回std::bad_alloc()。
+deallocate直接free掉，把内存上交堆管理器就行。
+construct尤其雷霆，我直接把代码贴在这里，下面的标题会仔细讲解：
+template &lt;typename... Args&gt; void construct(T* p, Args&amp;&amp;... args) { ::new ((void*)p) T(std::forward&lt;Args&gt;(args)...); } 简单来说就是使用placement new，在申请的内存上调用了构造函数。
+destroy也是很简单，直接调用析构。
+(3)从construct学到的诸多内容 &lt;1&gt; 参数包 最直击我灵魂的是这个玩意，参数包。
+我是真的第一次听说C&#43;&#43;还能有这种这么nb的东西。
+简单来说，参数包就是把一坨各种类型的参数打了个包，需要的时候再拆包取用。
+对于我们的construct代码，大致是这样的：在template &lt;typename... Args&gt;一行中，用泛型声明了Args是一个泛型的参数包类型，同时...指定了声明的是参数包类型而不是普通类型。
+在下面的参数列表中，Args&amp;&amp;... args则表示传参进来一个转发引用（别急，下面会讲转发引用）的args参数包，...仍然表示声明。
+在方法内部的...则表示拆包，将数据取用，填入构造函数。
+&lt;2&gt; placement new语法 placement new这个东西，我之前在写vector听大肥鱼提到过，但是没深究，终于还是来折磨我了。
+它的语法格式为：new （地址） 类型（参数），意为在地址处调用类型的构造函数。 而在我们的代码中，::new这里的::表示使用全局的new运算符，避免因重载而产生歧义。
+((void*)p)中，使用(void*)强转类型是安全的，因为任何指针都可以转为(void*)，而转换的目的是对齐颗粒度，因为placement new强制要求地址为(void*)类型。
+然后这一行一大坨代码直接给我吓哭了。连夜逃离C&#43;&#43;。不开玩笑的说今年这行代码将是最震撼我的一行。
+后面构造函数参数列表里填的东西马上说。
+&lt;3&gt; 完美转发 这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。
+首先是construct参数列表里的Args&amp;&amp;... args。这个&amp;&amp;不是我上次写后端的移动语义，它是一个转发引用，与下面的std::forward搭配使用。
+那么怎么区分&amp;&amp;到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。 而std::forward和T&amp;&amp;两个东西又有很大的区别。我又问了大肥鱼，T&amp;&amp;是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而std::forward则是在函数体内部调用，强制转换实参类型的一个方法。
+说了这么多形式的内容，该说说完美转发究竟是什么东西了。
+C&#43;&#43;最注重的就是性能，而性能是一点点抠出来的，我们的allocator当然不能落后在起跑线上，即使是construct这种地方也要时刻小心多余的开销——例如拷贝。
+而C&#43;&#43;拥有左值、右值两种值，其中左值是需要拷贝的，右值相当于常量无需拷贝，如果在construct时，placement new那里直接填写T(args...)，即使调用时填写了右值，也要再次进行拷贝，开销完全无法控制，因此完美转发可以保留左值和右值属性，直接避免了更大的开销，太美妙了。
+所以我们用T&amp;&amp;声明了这里的值需要完美拷贝，而std::forward相当于一个类型转换器，因为args作为具名变量属于左值，直接往构造函数里塞会挨个拷贝，出现上面提到的开销大的问题，所以使用std::forward转换了类型，把该右值的转换为右值，降低开销。
+我的天哪。理解了这个玩意简直是大脑升级。
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-08-14 20:43:26 +0800 CST'>August 14, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 小型STL开发日志 allocator(1)" href="http://localhost:1313/posts/post000011/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">排卡系统开发日志(1)
     </h2>
   </header>
   <div class="entry-content">
@@ -168,7 +215,7 @@ std::optional是一个模板类，例如我写一个函数：std::optional&lt;st
   <footer class="entry-footer">
 
 <span title='2026-08-12 20:35:38 +0800 CST'>August 12, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 排卡系统开发日志" href="http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/"></a>
+  <a class="entry-link" aria-label="post link to 排卡系统开发日志(1)" href="http://localhost:1313/posts/post000010/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -190,7 +237,7 @@ std::optional是一个模板类，例如我写一个函数：std::optional&lt;st
   <footer class="entry-footer">
 
 <span title='2026-08-02 19:51:23 +0800 CST'>August 2, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器更新" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E6%9B%B4%E6%96%B0/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器更新" href="http://localhost:1313/posts/post000009/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -228,7 +275,7 @@ std::optional是一个模板类，例如我写一个函数：std::optional&lt;st
   <footer class="entry-footer">
 
 <span title='2026-07-29 09:49:41 +0800 CST'>July 29, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 对vector的较高级实现" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E8%BE%83%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0/"></a>
+  <a class="entry-link" aria-label="post link to 对vector的较高级实现" href="http://localhost:1313/posts/post000008/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -267,7 +314,7 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
   <footer class="entry-footer">
 
 <span title='2026-07-28 09:17:44 +0800 CST'>July 28, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 对vector的简单实现" href="http://localhost:1313/posts/%E5%AF%B9vector%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/"></a>
+  <a class="entry-link" aria-label="post link to 对vector的简单实现" href="http://localhost:1313/posts/post000007/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -286,7 +333,7 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
   <footer class="entry-footer">
 
 <span title='2026-07-20 16:54:03 +0800 CST'>July 20, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(4)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%974/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(4)" href="http://localhost:1313/posts/post000006/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -305,7 +352,7 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
   <footer class="entry-footer">
 
 <span title='2026-07-19 21:29:11 +0800 CST'>July 19, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(3)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%973/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(3)" href="http://localhost:1313/posts/post000005/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -322,7 +369,7 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
   <footer class="entry-footer">
 
 <span title='2026-07-18 19:46:11 +0800 CST'>July 18, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 伟大的决定" href="http://localhost:1313/posts/%E4%BC%9F%E5%A4%A7%E7%9A%84%E5%86%B3%E5%AE%9A/"></a>
+  <a class="entry-link" aria-label="post link to 伟大的决定" href="http://localhost:1313/posts/post000004/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -340,7 +387,7 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
   <footer class="entry-footer">
 
 <span title='2026-07-15 21:24:04 +0800 CST'>July 15, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(2)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%972/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(2)" href="http://localhost:1313/posts/post000003/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -364,29 +411,7 @@ tap已经做好了，判定区间：±40ms为max，±80ms为great，&gt;80ms为m
   <footer class="entry-footer">
 
 <span title='2026-07-14 21:43:33 +0800 CST'>July 14, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(1)" href="http://localhost:1313/posts/4k%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">带空气阻力下落运动v-t关系式推导
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>哎。心酸。本来在我朋友的博客上写过了一次这个东西。结果经历一周访问不了他也不修。我只能提着昨日种种千辛万苦。
-但是我居然™的从ai聊天记录里翻出来了这篇，虽然翻出来的计算结果是错的，但是我能再改改用。可惜的是还有两篇找不到。我还得自己写一遍。不过那两篇一个是高考题。一个是未解决的问题。无所吊谓说是。
-正文：
-我们受力分析： $$mg-f=ma$$ 将$f=\frac{1}{2}\rho Sv^2$代入，并且写为微分形式： $$\frac{1}{m}(mg-\frac{1}{2}\rho Sv^2) = \frac{dv}{dt}$$ 分离变量： $$dt=\frac{m}{mg-\frac{1}{2}\rho Sv^2}\cdot dv$$ 积分： $$\int dt=\int \frac{m}{mg-\frac{1}{2}\rho Sv^2} dv$$ 接下来处理积分问题。 $$\int \frac{m}{mg-\frac{1}{2}\rho Sv^2}dv=m\int\frac{1}{mg-\frac{1}{2}\rho Sv^2}dv$$ 我们研究如下形式的积分： $$\int \frac{1}{a-bv^2}dv=\int\left(\frac{A}{\sqrt{a}&#43;\sqrt{b}v}&#43;\frac{B}{\sqrt{a}-\sqrt{b}v}\right)dv$$ 通分，得到
-$$\sqrt{a}(A&#43;B)&#43;\sqrt{b}v(B-A)=1$$ 则 $$ \begin{cases} \sqrt{a}\,(A&#43;B)=1 \\ B-A=0 \end{cases} $$ 解得
-$$A=B=\frac{1}{2\sqrt{a}}$$ 代回积分式，整理得到 $$\frac{1}{2\sqrt{ab}}\left(\int \frac{1}{v&#43;\sqrt{\frac{a}{b}}}dv - \int \frac{1}{v-\sqrt{\frac{a}{b}}}dv\right)$$ 积分并整理得到
-$$\frac{1}{2\sqrt{ab}}\ln\left|\frac{\sqrt{a}&#43;\sqrt{b}v}{\sqrt{a}-\sqrt{b}v}\right|&#43;C$$ 代入$a=mg$，$b=\frac{1}{2}\rho S$得到原积分等于 $$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}&#43;\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$ 亦即 $$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}&#43;\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$ 推导完毕。
-P.S.反解的话，我懒得搞了。好像可以用反双曲正切搞？随便了。
-</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-07-13 10:55:47 +0800 CST'>July 13, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 带空气阻力下落运动v-t关系式推导" href="http://localhost:1313/posts/%E5%B8%A6%E7%A9%BA%E6%B0%94%E9%98%BB%E5%8A%9B%E4%B8%8B%E8%90%BD%E8%BF%90%E5%8A%A8v-t%E5%85%B3%E7%B3%BB%E5%BC%8F%E6%8E%A8%E5%AF%BC/"></a>
+  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(1)" href="http://localhost:1313/posts/post000002/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

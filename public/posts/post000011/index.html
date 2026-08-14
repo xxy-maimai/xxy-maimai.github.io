@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>小型STL开发日志 allocator(1) | XxyBlog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一 前言&#43;碎碎念
+肯定有人会奇怪为什么排卡系统不继续写了，我先解释一下。
+其实写排卡系统的时候，我就想着锻炼后端能力就行，前端随意，做的丑点也随便，于是我拿起winform就开干，但是做一半我突然感觉拖控件设置属性什么的太麻烦了，而且界面不仅丑，更是几乎不知道怎么设计。
+于是我问了问ai怎么把C#的技术栈完美迁移到前端，它给了我blazor这个选项，我就浅浅试了一下。但是做着做着我又没什么耐心了，毕竟前端要注意设计界面什么的，我实在是懒得搞。这种活还是留给ai干，前端佬活该被裁（手动狗头保命）。
+于是我又陷入了百无聊赖的境界。我打开大肥鱼问了一下目前C&#43;&#43;和C#的技术方向，大肥鱼在C&#43;&#43;上再次推荐了底层。我想着不如就再写写STL吧，反正我挺喜欢这一块的（也许这会导致我成为冯诺1曼派，无所谓了）。
+依旧询问大肥鱼，得知写STL第一步要做出allocator来。于是我开始写，写到一半被狠狠震撼了开始写这一篇。
+二 学到的知识
+(1) 有关allocator本身
+allocator就是古C&#43;&#43;掌管任何容器的神，离了它谁也跑不起来，因为它是负责分配内存的模板类。
+其设计思想为分配内存和填入数据分离，分别由两套相对的基本功能实现。
+基本功能就四个，之前写vector的时候我也见识过了：allocate，deallocate，construct和destroy。
+一套是allocate和deallocate，一个负责分配内存，一个负责回收内存。
+另一套是construct和destroy，一个负责填入数据，一个负责清除数据。
+写起来仍然要借助一些底层库，不过借助的都是一些像malloc之类的不得不用的方法。
+(2) 四个方法的实现
+这四个方法都是建立的那一方难，摧毁的那一方简单。果然这个世界是熵增的吗。（不过如果说内存重置为0，也算是熵减。。又在发癫了）
+allocate需要malloc一块内存，成功返回内存，失败返回std::bad_alloc()。
+deallocate直接free掉，把内存上交堆管理器就行。
+construct尤其雷霆，我直接把代码贴在这里，下面的标题会仔细讲解：
+template &lt;typename... Args&gt;
+void construct(T* p, Args&amp;&amp;... args)
+{
+    ::new ((void*)p) T(std::forward&lt;Args&gt;(args)...);
+}
+简单来说就是使用placement new，在申请的内存上调用了构造函数。
+destroy也是很简单，直接调用析构。
+(3)从construct学到的诸多内容
+&lt;1&gt; 参数包
+最直击我灵魂的是这个玩意，参数包。
+我是真的第一次听说C&#43;&#43;还能有这种这么nb的东西。
+简单来说，参数包就是把一坨各种类型的参数打了个包，需要的时候再拆包取用。
+对于我们的construct代码，大致是这样的：在template &lt;typename... Args&gt;一行中，用泛型声明了Args是一个泛型的参数包类型，同时...指定了声明的是参数包类型而不是普通类型。
+在下面的参数列表中，Args&amp;&amp;... args则表示传参进来一个转发引用（别急，下面会讲转发引用）的args参数包，...仍然表示声明。
+在方法内部的...则表示拆包，将数据取用，填入构造函数。
+&lt;2&gt; placement new语法
+placement new这个东西，我之前在写vector听大肥鱼提到过，但是没深究，终于还是来折磨我了。
+它的语法格式为：new （地址） 类型（参数），意为在地址处调用类型的构造函数。
+而在我们的代码中，::new这里的::表示使用全局的new运算符，避免因重载而产生歧义。
+((void*)p)中，使用(void*)强转类型是安全的，因为任何指针都可以转为(void*)，而转换的目的是对齐颗粒度，因为placement new强制要求地址为(void*)类型。
+然后这一行一大坨代码直接给我吓哭了。连夜逃离C&#43;&#43;。不开玩笑的说今年这行代码将是最震撼我的一行。
+后面构造函数参数列表里填的东西马上说。
+&lt;3&gt; 完美转发
+这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。
+首先是construct参数列表里的Args&amp;&amp;... args。这个&amp;&amp;不是我上次写后端的移动语义，它是一个转发引用，与下面的std::forward搭配使用。
+那么怎么区分&amp;&amp;到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。
+而std::forward和T&amp;&amp;两个东西又有很大的区别。我又问了大肥鱼，T&amp;&amp;是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而std::forward则是在函数体内部调用，强制转换实参类型的一个方法。
+说了这么多形式的内容，该说说完美转发究竟是什么东西了。
+C&#43;&#43;最注重的就是性能，而性能是一点点抠出来的，我们的allocator当然不能落后在起跑线上，即使是construct这种地方也要时刻小心多余的开销——例如拷贝。
+而C&#43;&#43;拥有左值、右值两种值，其中左值是需要拷贝的，右值相当于常量无需拷贝，如果在construct时，placement new那里直接填写T(args...)，即使调用时填写了右值，也要再次进行拷贝，开销完全无法控制，因此完美转发可以保留左值和右值属性，直接避免了更大的开销，太美妙了。
+所以我们用T&amp;&amp;声明了这里的值需要完美拷贝，而std::forward相当于一个类型转换器，因为args作为具名变量属于左值，直接往构造函数里塞会挨个拷贝，出现上面提到的开销大的问题，所以使用std::forward转换了类型，把该右值的转换为右值，降低开销。
+我的天哪。理解了这个玩意简直是大脑升级。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/post000011/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/post000011/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js" integrity="sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="XxyBlog (Alt + H)">XxyBlog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      小型STL开发日志 allocator(1)
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-08-14 20:43:26 +0800 CST'>August 14, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><h1 id="一-前言碎碎念">一 前言+碎碎念<a hidden class="anchor" aria-hidden="true" href="#一-前言碎碎念">#</a></h1>
+<p>肯定有人会奇怪为什么排卡系统不继续写了，我先解释一下。<br>
+其实写排卡系统的时候，我就想着锻炼后端能力就行，前端随意，做的丑点也随便，于是我拿起<code>winform</code>就开干，但是做一半我突然感觉拖控件设置属性什么的太麻烦了，而且界面不仅丑，更是几乎不知道怎么设计。<br>
+于是我问了问ai怎么把<code>C#</code>的技术栈完美迁移到前端，它给了我<code>blazor</code>这个选项，我就浅浅试了一下。但是做着做着我又没什么耐心了，毕竟前端要注意设计界面什么的，我实在是懒得搞。这种活还是留给ai干，前端佬活该被裁（手动狗头保命）。<br>
+于是我又陷入了百无聊赖的境界。我打开大肥鱼问了一下目前<code>C++</code>和<code>C#</code>的技术方向，大肥鱼在<code>C++</code>上再次推荐了底层。我想着不如就再写写<code>STL</code>吧，反正我挺喜欢这一块的（也许这会导致我成为冯诺1曼派，无所谓了）。<br>
+依旧询问大肥鱼，得知写<code>STL</code>第一步要做出<code>allocator</code>来。于是我开始写，写到一半被狠狠震撼了开始写这一篇。</p>
+<h1 id="二-学到的知识">二 学到的知识<a hidden class="anchor" aria-hidden="true" href="#二-学到的知识">#</a></h1>
+<h2 id="1-有关allocator本身">(1) 有关<code>allocator</code>本身<a hidden class="anchor" aria-hidden="true" href="#1-有关allocator本身">#</a></h2>
+<p><code>allocator</code>就是古<code>C++</code>掌管任何容器的神，离了它谁也跑不起来，因为它是负责分配内存的模板类。<br>
+其设计思想为分配内存和填入数据分离，分别由两套相对的基本功能实现。
+基本功能就四个，之前写<code>vector</code>的时候我也见识过了：<code>allocate</code>，<code>deallocate</code>，<code>construct</code>和<code>destroy</code>。<br>
+一套是<code>allocate</code>和<code>deallocate</code>，一个负责分配内存，一个负责回收内存。
+另一套是<code>construct</code>和<code>destroy</code>，一个负责填入数据，一个负责清除数据。
+写起来仍然要借助一些底层库，不过借助的都是一些像<code>malloc</code>之类的不得不用的方法。</p>
+<h2 id="2-四个方法的实现">(2) 四个方法的实现<a hidden class="anchor" aria-hidden="true" href="#2-四个方法的实现">#</a></h2>
+<p>这四个方法都是建立的那一方难，摧毁的那一方简单。果然这个世界是熵增的吗。（不过如果说内存重置为0，也算是熵减。。又在发癫了）<br>
+<code>allocate</code>需要<code>malloc</code>一块内存，成功返回内存，失败返回<code>std::bad_alloc()</code>。<br>
+<code>deallocate</code>直接<code>free</code>掉，把内存上交堆管理器就行。<br>
+<code>construct</code>尤其雷霆，我直接把代码贴在这里，下面的标题会仔细讲解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">template</span> <span style="color:#f92672">&lt;</span><span style="color:#66d9ef">typename</span>... Args<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> construct(T<span style="color:#f92672">*</span> p, Args<span style="color:#f92672">&amp;&amp;</span>... args)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">::</span><span style="color:#66d9ef">new</span> ((<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)p) T(std<span style="color:#f92672">::</span>forward<span style="color:#f92672">&lt;</span>Args<span style="color:#f92672">&gt;</span>(args)...);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>简单来说就是使用<code>placement new</code>，在申请的内存上调用了构造函数。<br>
+<code>destroy</code>也是很简单，直接调用析构。</p>
+<h2 id="3从construct学到的诸多内容">(3)从<code>construct</code>学到的诸多内容<a hidden class="anchor" aria-hidden="true" href="#3从construct学到的诸多内容">#</a></h2>
+<h3 id="1-参数包">&lt;1&gt; 参数包<a hidden class="anchor" aria-hidden="true" href="#1-参数包">#</a></h3>
+<p>最直击我灵魂的是这个玩意，参数包。<br>
+我是真的第一次听说<code>C++</code>还能有这种这么nb的东西。<br>
+简单来说，参数包就是把一坨各种类型的参数打了个包，需要的时候再拆包取用。<br>
+对于我们的<code>construct</code>代码，大致是这样的：在<code>template &lt;typename... Args&gt;</code>一行中，用泛型声明了Args是一个泛型的参数包类型，同时<code>...</code>指定了声明的是参数包类型而不是普通类型。<br>
+在下面的参数列表中，<code>Args&amp;&amp;... args</code>则表示传参进来一个转发引用（别急，下面会讲转发引用）的<code>args</code>参数包，<code>...</code>仍然表示声明。<br>
+在方法内部的<code>...</code>则表示拆包，将数据取用，填入构造函数。</p>
+<h3 id="2-placement-new语法">&lt;2&gt; <code>placement new</code>语法<a hidden class="anchor" aria-hidden="true" href="#2-placement-new语法">#</a></h3>
+<p><code>placement new</code>这个东西，我之前在写<code>vector</code>听大肥鱼提到过，但是没深究，终于还是来折磨我了。<br>
+它的语法格式为：new （地址） 类型（参数），意为在地址处调用类型的构造函数。
+而在我们的代码中，<code>::new</code>这里的<code>::</code>表示使用全局的<code>new</code>运算符，避免因重载而产生歧义。<br>
+<code>((void*)p)</code>中，使用(void*)强转类型是安全的，因为任何指针都可以转为(void*)，而转换的目的是对齐颗粒度，因为<code>placement new</code>强制要求地址为(void*)类型。<br>
+然后这一行一大坨代码直接给我吓哭了。连夜逃离<code>C++</code>。不开玩笑的说今年这行代码将是最震撼我的一行。<br>
+后面构造函数参数列表里填的东西马上说。</p>
+<h3 id="3-完美转发">&lt;3&gt; <code>完美转发</code><a hidden class="anchor" aria-hidden="true" href="#3-完美转发">#</a></h3>
+<p>这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。<br>
+首先是<code>construct</code>参数列表里的<code>Args&amp;&amp;... args</code>。这个<code>&amp;&amp;</code>不是我上次写后端的移动语义，它是一个转发引用，与下面的<code>std::forward</code>搭配使用。<br>
+那么怎么区分<code>&amp;&amp;</code>到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。
+而<code>std::forward</code>和<code>T&amp;&amp;</code>两个东西又有很大的区别。我又问了大肥鱼，<code>T&amp;&amp;</code>是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而<code>std::forward</code>则是在函数体内部调用，强制转换实参类型的一个方法。<br>
+说了这么多形式的内容，该说说完美转发究竟是什么东西了。<br>
+<code>C++</code>最注重的就是性能，而性能是一点点抠出来的，我们的<code>allocator</code>当然不能落后在起跑线上，即使是<code>construct</code>这种地方也要时刻小心多余的开销——例如拷贝。<br>
+而<code>C++</code>拥有左值、右值两种值，其中左值是需要拷贝的，右值相当于常量无需拷贝，如果在<code>construct</code>时，<code>placement new</code>那里直接填写<code>T(args...)</code>，即使调用时填写了右值，也要再次进行拷贝，开销完全无法控制，因此完美转发可以保留左值和右值属性，直接避免了更大的开销，太美妙了。<br>
+所以我们用<code>T&amp;&amp;</code>声明了这里的值需要完美拷贝，而<code>std::forward</code>相当于一个类型转换器，因为<code>args</code>作为具名变量属于左值，直接往构造函数里塞会挨个拷贝，出现上面提到的开销大的问题，所以使用<code>std::forward</code>转换了类型，把该右值的转换为右值，降低开销。<br>
+我的天哪。理解了这个玩意简直是大脑升级。</p>
+<h1 id="三-后记">三 后记<a hidden class="anchor" aria-hidden="true" href="#三-后记">#</a></h1>
+<p>唉，底层真的难学，毕竟人类顶尖智慧铺了几十年的路，岂是我等凡人能够参透的。<br>
+但是俗话说的好，山就在那里。不去攻克永远不知道自己的上限在哪里。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">XxyBlog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

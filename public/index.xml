@@ -6,8 +6,56 @@
     <description>Recent content on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 14 Aug 2026 20:43:26 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 16 Aug 2026 16:52:24 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>小型STL开发日志 allocator(2)</title>
+      <link>http://localhost:1313/posts/post000012/</link>
+      <pubDate>Sun, 16 Aug 2026 16:52:24 +0800</pubDate>
+      <guid>http://localhost:1313/posts/post000012/</guid>
+      <description>&lt;h1 id=&#34;一-前言&#34;&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;继续学习底层中。&lt;br&gt;
+这一阶段主要学了内存池的基础实现，真的挺难学的，但是学懂了成就感很强。&lt;br&gt;
+最终这个内存池会供给&lt;code&gt;allocator&lt;/code&gt;用，所以归属在&lt;code&gt;allocator&lt;/code&gt;开发日志下面了。&lt;br&gt;
+哦对了，由于我才知道&lt;code&gt;malloc&lt;/code&gt;在&lt;code&gt;C++&lt;/code&gt;中有语言直接封装的&lt;code&gt;::operator new&lt;/code&gt;来替代，所以我就把malloc和free都换掉了。&lt;/p&gt;
+&lt;h1 id=&#34;二-正文&#34;&gt;二 正文&lt;/h1&gt;
+&lt;h2 id=&#34;1-内存池原理&#34;&gt;(1) 内存池原理&lt;/h2&gt;
+&lt;h3 id=&#34;1-为什么要内存池&#34;&gt;&amp;lt;1&amp;gt; 为什么要内存池&lt;/h3&gt;
+&lt;p&gt;想学习内存池，先要看看我们目前阶段的&lt;code&gt;allocator&lt;/code&gt;在内存管理上有什么缺点。&lt;br&gt;
+当我们反复&lt;code&gt;new&lt;/code&gt;和&lt;code&gt;delete&lt;/code&gt;时，堆会反复被申请内存，又释放掉内存，这样堆就变得非常混乱，成为一盘分子料理，因此我们要想个办法防止堆过于稀碎。&lt;br&gt;
+内存池就是解决这个问题的方案，简单来说，内存池就是提前申请好的一块大内存，当我们需要用内存时从上面切一块下来，管理完全由内存池自己实现，不用堆操心。&lt;br&gt;
+这一大块内存，我们需要一个头指针&lt;code&gt;pool_start&lt;/code&gt;和尾指针&lt;code&gt;pool_end&lt;/code&gt;，类型为&lt;code&gt;char*&lt;/code&gt;（因为&lt;code&gt;char*&lt;/code&gt;是&lt;code&gt;8&lt;/code&gt;字节的，我们下面提到对齐粒度一般也定义为&lt;code&gt;8&lt;/code&gt;，这样做兼容了最小内存块大小）。
+内存池的重要部件是自由链表，我们先讲讲这个东西。&lt;/p&gt;
+&lt;h3 id=&#34;2-自由链表&#34;&gt;&amp;lt;2&amp;gt; 自由链表&lt;/h3&gt;
+&lt;p&gt;自由链表的节点&lt;code&gt;FreeNode&lt;/code&gt;是一个联合体（下面的标题讲语法知识会涉及），内部有一个&lt;code&gt;FreeNode*&lt;/code&gt;类型的&lt;code&gt;next&lt;/code&gt;指针，存储下一个节点，还有一个&lt;code&gt;char&lt;/code&gt;类型的&lt;code&gt;data[1]&lt;/code&gt;变量。&lt;code&gt;next&lt;/code&gt;指针很好理解，但这个&lt;code&gt;data[1]&lt;/code&gt;的变量属实令人费解。我们要存的数据又不一定是&lt;code&gt;char&lt;/code&gt;类型，为什么要用&lt;code&gt;char&lt;/code&gt;去存数据呢？&lt;br&gt;
+实际上，这里的&lt;code&gt;char&lt;/code&gt;类型的&lt;code&gt;data[1]&lt;/code&gt;相当于一个“路标”，它是标记当前这个节点的位置的一个量，而接下来我们要顺着这个“路标”往后访问数据，具体访问多少数据需要看传入的参数；而使用&lt;code&gt;char&lt;/code&gt;类型也是考虑到对齐粒度问题。&lt;br&gt;
+自由链表的节点我们搞明白了，接下来我们来看自由链表的对齐策略以及存储内存块的策略。&lt;/p&gt;
+&lt;h3 id=&#34;3-对齐与存储&#34;&gt;&amp;lt;3&amp;gt; 对齐与存储&lt;/h3&gt;
+&lt;p&gt;自由链表的对齐需要三个量的支持：最小对齐粒度&lt;code&gt;ALIGN&lt;/code&gt;，最大字节数&lt;code&gt;MAX_BYTES&lt;/code&gt;和由这两个量衍生出来的第三个量，自由链表个数&lt;code&gt;FREE_LISTS_COUNT&lt;/code&gt;。&lt;br&gt;
+下面统一按照&lt;code&gt;ALIGN = 8, MAX_BYTES = 128, FREE_LISTS_COUNT = 16&lt;/code&gt;来算。
+这个时候有的人会奇怪了，为什么自由链表还有个数？实际上，自由链表存储的的内存块可以按不同大小分类，例如&lt;code&gt;1~8&lt;/code&gt;字节全部接到下标为&lt;code&gt;0&lt;/code&gt;的链表里去，&lt;code&gt;9~16&lt;/code&gt;字节的接到下标为&lt;code&gt;1&lt;/code&gt;的链表里去，以此类推。而这样的分类就可以保证我们把内存块全部对齐，同时最大限度地省内存，下标为&lt;code&gt;0&lt;/code&gt;的链表就可以按&lt;code&gt;8&lt;/code&gt;字节去对齐，下标为&lt;code&gt;1&lt;/code&gt;的链表可以按&lt;code&gt;16&lt;/code&gt;字节去对齐，以此类推。下面举一个实际例子：&lt;br&gt;
+假如说我们要申请一块大小为&lt;code&gt;10&lt;/code&gt;字节的内存，&lt;code&gt;10&lt;/code&gt;字节可以通过数学运算得到其对应下标&lt;code&gt;1&lt;/code&gt;，于是我们就在&lt;code&gt;free_lists[1]&lt;/code&gt;上接上一块大小为&lt;code&gt;16&lt;/code&gt;，实际上可访问大小为&lt;code&gt;10&lt;/code&gt;的新内存。&lt;br&gt;
+这是当内存池够用的时候的行为。当内存池有其他情况时，我们就得仔细考虑分支策略了。&lt;/p&gt;
+&lt;h3 id=&#34;4-详细设计allocate策略&#34;&gt;&amp;lt;4&amp;gt; 详细设计&lt;code&gt;allocate&lt;/code&gt;策略&lt;/h3&gt;
+&lt;p&gt;我们定义私有方法&lt;code&gt;divide_pool&lt;/code&gt;，只能类内访问。这个方法封装切内存块并接到链表这一操作。&lt;br&gt;
+其内部逻辑为：先计算需要声明多少内存块，再遍历计算&lt;code&gt;start&lt;/code&gt;指针加上内存块的地址，将地址(此时为&lt;code&gt;int&lt;/code&gt;类型)强行转换为&lt;code&gt;FreeNode*&lt;/code&gt;类型，接着接在链表上。（类型转换下面也会讲到，此处使用&lt;code&gt;reinterpret_cast&lt;/code&gt;，因为要从&lt;code&gt;int&lt;/code&gt;转换到指针）
+在&lt;code&gt;allocate&lt;/code&gt;时，我们需要先看看申请内存的大小，一旦大于128我们直接调用&lt;code&gt;::operator new&lt;/code&gt;申请内存并返回，否则我们进行内存池操作。&lt;br&gt;
+首先我们要计算该内存块所属的自由链表下标&lt;code&gt;index&lt;/code&gt;，以及对齐后内存块大小&lt;code&gt;block_size&lt;/code&gt;。&lt;br&gt;
+接着我们为了提升代码可读性，声明一个链表头的引用：&lt;code&gt;FreeNode*&amp;amp; head = free_lists[index]&lt;/code&gt;。其实就是给&lt;code&gt;free_lists[index]&lt;/code&gt;起了个别名而已，没什么深层用意。&lt;br&gt;
+然后我们需要判断链表头是否为空：一旦为空，我们直接声明一个新节点出来，然后把节点挂在链表上，返回节点就完事。&lt;br&gt;
+接着我们判断内存池是否为空，如果为空，我们需要开辟内存池。我们&lt;code&gt;::operator new(4096)&lt;/code&gt;申请出来&lt;code&gt;4096&lt;/code&gt;字节的内存池，然后强转为&lt;code&gt;char*&lt;/code&gt;就行（此处使用&lt;code&gt;static_cast&lt;/code&gt;强转），接着让&lt;code&gt;pool_end = pool_start + 4096&lt;/code&gt;。&lt;br&gt;
+我们接着计算池子里还有多少能用的内存，命名为&lt;code&gt;available&lt;/code&gt;。这里的计算依赖于我们每一次申请完节点挂在链表以后，把pool_start向后挪（因为前面的内存都已经被占用了）。如果可用空间大于我们要申请的内存块大小（即&lt;code&gt;block_size&lt;/code&gt;），我们直接切块。&lt;br&gt;
+这里切块还要取个最小值，如果能切20块我们就切到20块，否则切能切的块数。这个属于是提前铺路了。把这个块数记为&lt;code&gt;count&lt;/code&gt;。&lt;br&gt;
+接着我们计算需要切块的字节数，即&lt;code&gt;count * block_size&lt;/code&gt;。&lt;br&gt;
+然后我们调用切内存的方法&lt;code&gt;divide_pool&lt;/code&gt;，给池子切出来好几块挂到链表上去。&lt;br&gt;
+之后我们做一下收尾工作，把&lt;code&gt;pool_start&lt;/code&gt;往后挪就ok，然后返回链表头指针。&lt;br&gt;
+可用空间如果不够，就涉及到了碎片管理的内容，我还没有深入学习到那里，所以暂时留白。&lt;br&gt;
+至此，&lt;code&gt;allocate&lt;/code&gt;的每一个分支我们都进行了相应的处理。&lt;/p&gt;
+&lt;h3 id=&#34;5-deallocate的实现&#34;&gt;&amp;lt;5&amp;gt; &lt;code&gt;deallocate&lt;/code&gt;的实现&lt;/h3&gt;
+&lt;p&gt;仍然是破坏比建构简单。&lt;br&gt;
+当要&lt;code&gt;deallocate&lt;/code&gt;的内存大小小于MAX_BYTES时，我们就得用&lt;code&gt;::operator delete&lt;/code&gt;释放内存。&lt;br&gt;
+否则我们直接把节点归还就行。（有关这个“归还”，会跟着联合体一块讲了）&lt;/p&gt;</description>
+    </item>
     <item>
       <title>小型STL开发日志 allocator(1)</title>
       <link>http://localhost:1313/posts/post000011/</link>
@@ -57,7 +105,7 @@
 &lt;h3 id=&#34;3-完美转发&#34;&gt;&amp;lt;3&amp;gt; &lt;code&gt;完美转发&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。&lt;br&gt;
 首先是&lt;code&gt;construct&lt;/code&gt;参数列表里的&lt;code&gt;Args&amp;amp;&amp;amp;... args&lt;/code&gt;。这个&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;不是我上次写后端的移动语义，它是一个转发引用，与下面的&lt;code&gt;std::forward&lt;/code&gt;搭配使用。&lt;br&gt;
-那么怎么区分&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。
+那么怎么区分&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。&lt;br&gt;
 而&lt;code&gt;std::forward&lt;/code&gt;和&lt;code&gt;T&amp;amp;&amp;amp;&lt;/code&gt;两个东西又有很大的区别。我又问了大肥鱼，&lt;code&gt;T&amp;amp;&amp;amp;&lt;/code&gt;是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而&lt;code&gt;std::forward&lt;/code&gt;则是在函数体内部调用，强制转换实参类型的一个方法。&lt;br&gt;
 说了这么多形式的内容，该说说完美转发究竟是什么东西了。&lt;br&gt;
 &lt;code&gt;C++&lt;/code&gt;最注重的就是性能，而性能是一点点抠出来的，我们的&lt;code&gt;allocator&lt;/code&gt;当然不能落后在起跑线上，即使是&lt;code&gt;construct&lt;/code&gt;这种地方也要时刻小心多余的开销——例如拷贝。&lt;br&gt;

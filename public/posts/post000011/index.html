@@ -226,7 +226,7 @@ C&#43;&#43;最注重的就是性能，而性能是一点点抠出来的，我们
 <h3 id="3-完美转发">&lt;3&gt; <code>完美转发</code><a hidden class="anchor" aria-hidden="true" href="#3-完美转发">#</a></h3>
 <p>这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。<br>
 首先是<code>construct</code>参数列表里的<code>Args&amp;&amp;... args</code>。这个<code>&amp;&amp;</code>不是我上次写后端的移动语义，它是一个转发引用，与下面的<code>std::forward</code>搭配使用。<br>
-那么怎么区分<code>&amp;&amp;</code>到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。
+那么怎么区分<code>&amp;&amp;</code>到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。<br>
 而<code>std::forward</code>和<code>T&amp;&amp;</code>两个东西又有很大的区别。我又问了大肥鱼，<code>T&amp;&amp;</code>是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而<code>std::forward</code>则是在函数体内部调用，强制转换实参类型的一个方法。<br>
 说了这么多形式的内容，该说说完美转发究竟是什么东西了。<br>
 <code>C++</code>最注重的就是性能，而性能是一点点抠出来的，我们的<code>allocator</code>当然不能落后在起跑线上，即使是<code>construct</code>这种地方也要时刻小心多余的开销——例如拷贝。<br>

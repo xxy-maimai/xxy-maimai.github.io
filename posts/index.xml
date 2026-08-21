@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on XxyBlog</title><link>https://xxy-maimai.github.io/posts/</link><description>Recent content in Posts on XxyBlog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 09:57:47 +0800</lastBuildDate><atom:link href="https://xxy-maimai.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>汇编学习(1)</title><link>https://xxy-maimai.github.io/posts/post000014/</link><pubDate>Fri, 21 Aug 2026 09:57:47 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000014/</guid><description>&lt;h1 id="一-前言"&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;哎。实在是太闲了。所以我又把&lt;code&gt;MASM&lt;/code&gt;汇编捡起来了。&lt;br&gt;
+可以说我三分钟热度吧。学&lt;code&gt;STL&lt;/code&gt;也学一半就跑了。&lt;br&gt;
+写了个输出&lt;code&gt;0-32767&lt;/code&gt;整数的函数。简单说说。&lt;/p&gt;
+&lt;h1 id="二-正文"&gt;二 正文&lt;/h1&gt;
+&lt;p&gt;这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进&lt;code&gt;AX&lt;/code&gt;了。&lt;br&gt;
+首先我们写出&lt;code&gt;c++&lt;/code&gt;的代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;int&lt;/span&gt; num &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;10086&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;char&lt;/span&gt; numstr[&lt;span style="color:#ae81ff"&gt;5&lt;/span&gt;] &lt;span style="color:#f92672"&gt;=&lt;/span&gt; {&lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;int&lt;/span&gt; i &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;4&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;while&lt;/span&gt;(num &lt;span style="color:#f92672"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; numstr[i] &lt;span style="color:#f92672"&gt;=&lt;/span&gt; i &lt;span style="color:#f92672"&gt;%&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;10&lt;/span&gt; &lt;span style="color:#f92672"&gt;+&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#39;0&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; num &lt;span style="color:#f92672"&gt;/=&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;10&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;--&lt;/span&gt;i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;int&lt;/span&gt; i &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;; i &lt;span style="color:#f92672"&gt;&amp;lt;&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;5&lt;/span&gt;; &lt;span style="color:#f92672"&gt;++&lt;/span&gt;i){
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;if&lt;/span&gt;(numstr[i] &lt;span style="color:#f92672"&gt;==&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;) &lt;span style="color:#66d9ef"&gt;continue&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; cout &lt;span style="color:#f92672"&gt;&amp;lt;&amp;lt;&lt;/span&gt; numstr[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;大概就这样。下面来解释一下为什么这么写。&lt;br&gt;
+&lt;code&gt;21H&lt;/code&gt;号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是&lt;code&gt;02H&lt;/code&gt;号功能，我们采取这种方案。&lt;br&gt;
+而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如&lt;code&gt;10086&lt;/code&gt;如果直接取余输出，会输出&lt;code&gt;68001&lt;/code&gt;这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。&lt;br&gt;
+大体思路定下来了我们可以开始尝试写代码。&lt;br&gt;
+首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义&lt;code&gt;PRINTINTEGER&lt;/code&gt;方法，开始写代码。&lt;br&gt;
+汇编中，除法是这样算的：把被除数放在&lt;code&gt;AX&lt;/code&gt;里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用&lt;code&gt;BX&lt;/code&gt;寄存器存放除数&lt;code&gt;10&lt;/code&gt;。而除完的商放在&lt;code&gt;AX&lt;/code&gt;中，余数放在&lt;code&gt;DX&lt;/code&gt;中。&lt;br&gt;
+按照这个原理，我们可以写出除法循环的代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-armasm" data-lang="armasm"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; LEA &lt;span style="color:#960050;background-color:#1e0010"&gt;SI&lt;/span&gt;, &lt;span style="color:#960050;background-color:#1e0010"&gt;NUMSTR&lt;/span&gt; &lt;span style="color:#960050;background-color:#1e0010"&gt;+&lt;/span&gt; &lt;span style="color:#960050;background-color:#1e0010"&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; MOV &lt;span style="color:#960050;background-color:#1e0010"&gt;BX&lt;/span&gt;, &lt;span style="color:#960050;background-color:#1e0010"&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; DIVISION:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; DIV &lt;span style="color:#960050;background-color:#1e0010"&gt;BX&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ADD &lt;span style="color:#960050;background-color:#1e0010"&gt;DL&lt;/span&gt;, &lt;span style="color:#960050;background-color:#1e0010"&gt;30H&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; MOV &lt;span style="color:#960050;background-color:#1e0010"&gt;[SI]&lt;/span&gt;, &lt;span style="color:#960050;background-color:#1e0010"&gt;DL&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; DEC &lt;span style="color:#960050;background-color:#1e0010"&gt;SI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; CMP &lt;span style="color:#960050;background-color:#1e0010"&gt;AX&lt;/span&gt;, &lt;span style="color:#960050;background-color:#1e0010"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; JA &lt;span style="color:#960050;background-color:#1e0010"&gt;DIVISION&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;逐行分析一下，&lt;code&gt;LEA SI, NUMSTR + 4&lt;/code&gt;就是把&lt;code&gt;SI&lt;/code&gt;指向了&lt;code&gt;NUMSTR&lt;/code&gt;数组的末尾（因为我们要倒序存储）。&lt;br&gt;
+下面的&lt;code&gt;ADD DL, 30H&lt;/code&gt;是加了&lt;code&gt;'0'&lt;/code&gt;这个偏移量，因为输出字符要对应&lt;code&gt;ASCII&lt;/code&gt;码表。&lt;br&gt;
+接着&lt;code&gt;MOV [SI], DL&lt;/code&gt;是把余数加&lt;code&gt;'0'&lt;/code&gt;以后的结果放进数组，方便后续输出。&lt;br&gt;
+下一步&lt;code&gt;DEC SI&lt;/code&gt;就是自减，把下标往前挪。&lt;br&gt;
+接着比较一下商&lt;code&gt;AX&lt;/code&gt;和&lt;code&gt;0&lt;/code&gt;的大小，如果大于&lt;code&gt;0&lt;/code&gt;就继续循环，否则进行打印。&lt;br&gt;
+接着我们来写打印的代码。这个也简单。&lt;/p&gt;</description></item><item><title>小型STL开发日志 allocator(3)</title><link>https://xxy-maimai.github.io/posts/post000013/</link><pubDate>Tue, 18 Aug 2026 18:49:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000013/</guid><description>&lt;h1 id="一-前言"&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;今天给内存池的内容都写完了，然后把&lt;code&gt;allocator&lt;/code&gt;改成了适配内存池的版本，大概是能用了。等我写容器慢慢测试吧。&lt;br&gt;
+其实已经有在写&lt;code&gt;vector&lt;/code&gt;了，不过其实就是把之前实现过的那个&lt;code&gt;vector&lt;/code&gt;改改拿过来用。&lt;br&gt;
+废话不多说，直接开始正文。&lt;/p&gt;
+&lt;h1 id="二-正文"&gt;二 正文&lt;/h1&gt;
+&lt;h2 id="1-内存池剩余部分优化与allocator的适配"&gt;(1) 内存池剩余部分优化与&lt;code&gt;allocator&lt;/code&gt;的适配&lt;/h2&gt;
+&lt;h3 id="1-碎片内存管理"&gt;&amp;lt;1&amp;gt; 碎片内存管理&lt;/h3&gt;
+&lt;p&gt;上一篇我们提到了，当可用空间&lt;code&gt;available&lt;/code&gt;小于需分配的内存大小&lt;code&gt;block_size&lt;/code&gt;时，我们需要对破碎的内存块进行管理。&lt;br&gt;
+由于我只是想简单实现内存池的功能，所以管理的方法挺简单的，就是把剩余的内存全部切成以对齐粒度为大小的块接到链表上，再把剩下的那一小丢丢内存丢掉不要，开辟新的内存池来分配内存。&lt;br&gt;
+下面举个例子说：当前内存池剩余&lt;code&gt;30&lt;/code&gt;字节的内存，但是用户申请了&lt;code&gt;32&lt;/code&gt;字节，我们就得给这&lt;code&gt;30&lt;/code&gt;字节尽可能地切块，通过计算我们发现可以切出来&lt;code&gt;3&lt;/code&gt;块以对齐粒度&lt;code&gt;8&lt;/code&gt;为大小的内存，接到&lt;code&gt;free_lists[0]&lt;/code&gt;上面，剩下的6字节小内存直接丢弃开销不算大，可以接受。&lt;br&gt;
+而碎片管理完成以后，我们需要开辟新内存；开辟新内存时，我们还得考虑一个问题，就是开辟的池子大小。这里我们也采取简单粗暴的方案：&lt;br&gt;
+首先我们要在类内定义一个常量和一个变量，分别是&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;和&lt;code&gt;next_pool_size&lt;/code&gt;。此处我遇到了一个很逆天的问题，下个二级标题讲，我们先在此处简单提一下解决方案：使用&lt;code&gt;c++17&lt;/code&gt;及更高标准直接用&lt;code&gt;static inline constexpr&lt;/code&gt;来声明&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;就好，如果像我一样还在用&lt;code&gt;c++11&lt;/code&gt;那对不起了，要么把&lt;code&gt;std::min&lt;/code&gt;（或&lt;code&gt;std::max&lt;/code&gt;）换成三目运算符或&lt;code&gt;if&lt;/code&gt;语句，要么把常量改成函数调用，如&lt;code&gt;std::size_t get_max_pool_size() {return 1 &amp;lt;&amp;lt; 20;}&lt;/code&gt;这样的函数。&lt;br&gt;
+我们将&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;作为内存池最大申请的大小（防止堆爆炸），&lt;code&gt;next_pool_size&lt;/code&gt;作为记录下个池子大小的变量，&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;我们令它等于&lt;code&gt;1MB&lt;/code&gt;，即&lt;code&gt;1 &amp;lt;&amp;lt; 20&lt;/code&gt;，而&lt;code&gt;next_pool_size&lt;/code&gt;我们给他初始化为&lt;code&gt;4096&lt;/code&gt;，后面的值随内存分配而变化。&lt;br&gt;
+回到开辟池子的逻辑，先计算一个&lt;code&gt;need_size&lt;/code&gt;，其值为&lt;code&gt;block_size * 32&lt;/code&gt;（这里是为了在切出&lt;code&gt;20&lt;/code&gt;块之后再留出一块空闲空间，所以采用&lt;code&gt;32&lt;/code&gt;这个数字），接着再求出&lt;code&gt;request&lt;/code&gt;，分两步求，第一步求出&lt;code&gt;need_size&lt;/code&gt;和&lt;code&gt;next_pool_size&lt;/code&gt;中较大值，第二步求出&lt;code&gt;request&lt;/code&gt;和&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt; 中的较小值，防止内存申请过大导致堆爆炸。然后我们就可以用&lt;code&gt;::operator new&lt;/code&gt;来申请一块大小为&lt;code&gt;request&lt;/code&gt;的内存，作为新的内存池。接下来，我们来切池子，切20块出来并且接到链表上，这块的逻辑就搞完了。&lt;/p&gt;
+&lt;h3 id="2-互斥锁防止线程问题"&gt;&amp;lt;2&amp;gt; 互斥锁防止线程问题&lt;/h3&gt;
+&lt;p&gt;这里没什么好说的，用&lt;code&gt;std::lock_guard&lt;/code&gt;锁一下&lt;code&gt;std::mutex&lt;/code&gt;就行了。&lt;/p&gt;
+&lt;h3 id="3-allocator的适配"&gt;&amp;lt;3&amp;gt; &lt;code&gt;allocator&lt;/code&gt;的适配&lt;/h3&gt;
+&lt;p&gt;在&lt;code&gt;allocator&lt;/code&gt;一侧，我们需要针对&lt;code&gt;allocate&lt;/code&gt;和&lt;code&gt;deallocate&lt;/code&gt;做针对内存池的适配。首先我们来实现一个迈耶单例（这个下面会讲），说人话就是声明一个内存池，这个内存池是在&lt;code&gt;MemoryPool&amp;amp; get_pool()&lt;/code&gt;这样一个私有方法中定义的，同时加了&lt;code&gt;static&lt;/code&gt;修饰符，此时这个池子作为一个迈耶单例可以被同类型的各个&lt;code&gt;allocator&lt;/code&gt;访问。&lt;br&gt;
+有了池子我们开始改&lt;code&gt;allocator&lt;/code&gt;，原来我们使用&lt;code&gt;::operator new&lt;/code&gt;，现在我们改成&lt;code&gt;get_pool().allocate&lt;/code&gt;来分配，内存大小参数填&lt;code&gt;n * sizeof(T)&lt;/code&gt;（因为内存池处针对字节进行分配，而&lt;code&gt;allocator&lt;/code&gt;只关注元素个数）。&lt;br&gt;
+而&lt;code&gt;deallocate&lt;/code&gt;也差不多，调用&lt;code&gt;get_pool().deallocate&lt;/code&gt;，大小也填&lt;code&gt;n * sizeof(T)&lt;/code&gt;。&lt;br&gt;
+至于&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;不用改，它们不涉及内存的申请和收回，只涉及构造和析构。&lt;br&gt;
+这样整体的结构就写好了。&lt;/p&gt;
+&lt;h2 id="2-语法知识"&gt;(2) 语法知识&lt;/h2&gt;
+&lt;h3 id="1-odr问题"&gt;&amp;lt;1&amp;gt; ODR问题&lt;/h3&gt;
+&lt;p&gt;这个简直是太阴了，是写&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;那里出了问题。&lt;br&gt;
+简单来说，一个经过&lt;code&gt;static constexpr&lt;/code&gt;修饰的量，不能被&lt;code&gt;ODR&lt;/code&gt;使用，在我们的代码中就是因为&lt;code&gt;std::min&lt;/code&gt;产生了常引用而出现问题。&lt;br&gt;
+在我使用的&lt;code&gt;c++11&lt;/code&gt;标准中，并没有良好的语法糖来解决这个问题，所以我只能使用定义一个方法的方式来代替常量。而大肥鱼跟我说，&lt;code&gt;c++17&lt;/code&gt;标准中可以使用&lt;code&gt;static inline constexpr&lt;/code&gt;来避免该问题，内联变量无需外部定义。&lt;/p&gt;
+&lt;h3 id="2-迈耶单例"&gt;&amp;lt;2&amp;gt; 迈耶单例&lt;/h3&gt;
+&lt;p&gt;这个是&lt;code&gt;Scott Meyers&lt;/code&gt;大神提出的用法，所以叫迈耶单例。&lt;br&gt;
+实际上它是利用了&lt;code&gt;c++&lt;/code&gt;的一个特性，就是类方法内的静态局部变量只会在第一次执行到方法时会被初始化，剩下的调用都只会返回这个已经被初始化的变量的引用。&lt;/p&gt;
+&lt;h1 id="三-后记"&gt;三 后记&lt;/h1&gt;
+&lt;p&gt;关于内存池和&lt;code&gt;allocator&lt;/code&gt;暂时就开发到这里，有基础功能和作为学习够用的优化就好了，工业级的内存池和&lt;code&gt;allocator&lt;/code&gt;还有诸多特性，比如内存池的各种统计工具，高并发性和其它一些内容，再比如&lt;code&gt;allocator&lt;/code&gt;的&lt;code&gt;allocate_at_least&lt;/code&gt;还有&lt;code&gt;rebind&lt;/code&gt;之类的内容，我暂时不去学了。&lt;br&gt;
+真是一场酣畅淋漓的底层大学习。&lt;/p&gt;</description></item><item><title>小型STL开发日志 allocator(2)</title><link>https://xxy-maimai.github.io/posts/post000012/</link><pubDate>Sun, 16 Aug 2026 16:52:24 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000012/</guid><description>&lt;h1 id="一-前言"&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;继续学习底层中。&lt;br&gt;
+这一阶段主要学了内存池的基础实现，真的挺难学的，但是学懂了成就感很强。&lt;br&gt;
+最终这个内存池会供给&lt;code&gt;allocator&lt;/code&gt;用，所以归属在&lt;code&gt;allocator&lt;/code&gt;开发日志下面了。&lt;br&gt;
+哦对了，由于我才知道&lt;code&gt;malloc&lt;/code&gt;在&lt;code&gt;C++&lt;/code&gt;中有语言直接封装的&lt;code&gt;::operator new&lt;/code&gt;来替代，所以我就把malloc和free都换掉了。&lt;/p&gt;
+&lt;h1 id="二-正文"&gt;二 正文&lt;/h1&gt;
+&lt;h2 id="1-内存池原理"&gt;(1) 内存池原理&lt;/h2&gt;
+&lt;h3 id="1-为什么要内存池"&gt;&amp;lt;1&amp;gt; 为什么要内存池&lt;/h3&gt;
+&lt;p&gt;想学习内存池，先要看看我们目前阶段的&lt;code&gt;allocator&lt;/code&gt;在内存管理上有什么缺点。&lt;br&gt;
+当我们反复&lt;code&gt;new&lt;/code&gt;和&lt;code&gt;delete&lt;/code&gt;时，堆会反复被申请内存，又释放掉内存，这样堆就变得非常混乱，成为一盘分子料理，因此我们要想个办法防止堆过于稀碎。&lt;br&gt;
+内存池就是解决这个问题的方案，简单来说，内存池就是提前申请好的一块大内存，当我们需要用内存时从上面切一块下来，管理完全由内存池自己实现，不用堆操心。&lt;br&gt;
+这一大块内存，我们需要一个头指针&lt;code&gt;pool_start&lt;/code&gt;和尾指针&lt;code&gt;pool_end&lt;/code&gt;，类型为&lt;code&gt;char*&lt;/code&gt;（因为&lt;code&gt;char*&lt;/code&gt;是&lt;code&gt;8&lt;/code&gt;字节的，我们下面提到对齐粒度一般也定义为&lt;code&gt;8&lt;/code&gt;，这样做兼容了最小内存块大小）。
+内存池的重要部件是自由链表，我们先讲讲这个东西。&lt;/p&gt;
+&lt;h3 id="2-自由链表"&gt;&amp;lt;2&amp;gt; 自由链表&lt;/h3&gt;
+&lt;p&gt;自由链表的节点&lt;code&gt;FreeNode&lt;/code&gt;是一个联合体（下面的标题讲语法知识会涉及），内部有一个&lt;code&gt;FreeNode*&lt;/code&gt;类型的&lt;code&gt;next&lt;/code&gt;指针，存储下一个节点，还有一个&lt;code&gt;char&lt;/code&gt;类型的&lt;code&gt;data[1]&lt;/code&gt;变量。&lt;code&gt;next&lt;/code&gt;指针很好理解，但这个&lt;code&gt;data[1]&lt;/code&gt;的变量属实令人费解。我们要存的数据又不一定是&lt;code&gt;char&lt;/code&gt;类型，为什么要用&lt;code&gt;char&lt;/code&gt;去存数据呢？&lt;br&gt;
+实际上，这里的&lt;code&gt;char&lt;/code&gt;类型的&lt;code&gt;data[1]&lt;/code&gt;相当于一个“路标”，它是标记当前这个节点的位置的一个量，而接下来我们要顺着这个“路标”往后访问数据，具体访问多少数据需要看传入的参数；而使用&lt;code&gt;char&lt;/code&gt;类型也是考虑到对齐粒度问题。&lt;br&gt;
+自由链表的节点我们搞明白了，接下来我们来看自由链表的对齐策略以及存储内存块的策略。&lt;/p&gt;
+&lt;h3 id="3-对齐与存储"&gt;&amp;lt;3&amp;gt; 对齐与存储&lt;/h3&gt;
+&lt;p&gt;自由链表的对齐需要三个量的支持：最小对齐粒度&lt;code&gt;ALIGN&lt;/code&gt;，最大字节数&lt;code&gt;MAX_BYTES&lt;/code&gt;和由这两个量衍生出来的第三个量，自由链表个数&lt;code&gt;FREE_LISTS_COUNT&lt;/code&gt;。&lt;br&gt;
+下面统一按照&lt;code&gt;ALIGN = 8, MAX_BYTES = 128, FREE_LISTS_COUNT = 16&lt;/code&gt;来算。
+这个时候有的人会奇怪了，为什么自由链表还有个数？实际上，自由链表存储的的内存块可以按不同大小分类，例如&lt;code&gt;1~8&lt;/code&gt;字节全部接到下标为&lt;code&gt;0&lt;/code&gt;的链表里去，&lt;code&gt;9~16&lt;/code&gt;字节的接到下标为&lt;code&gt;1&lt;/code&gt;的链表里去，以此类推。而这样的分类就可以保证我们把内存块全部对齐，同时最大限度地省内存，下标为&lt;code&gt;0&lt;/code&gt;的链表就可以按&lt;code&gt;8&lt;/code&gt;字节去对齐，下标为&lt;code&gt;1&lt;/code&gt;的链表可以按&lt;code&gt;16&lt;/code&gt;字节去对齐，以此类推。下面举一个实际例子：&lt;br&gt;
+假如说我们要申请一块大小为&lt;code&gt;10&lt;/code&gt;字节的内存，&lt;code&gt;10&lt;/code&gt;字节可以通过数学运算得到其对应下标&lt;code&gt;1&lt;/code&gt;，于是我们就在&lt;code&gt;free_lists[1]&lt;/code&gt;上接上一块大小为&lt;code&gt;16&lt;/code&gt;，实际上可访问大小为&lt;code&gt;10&lt;/code&gt;的新内存。&lt;br&gt;
+这是当内存池够用的时候的行为。当内存池有其他情况时，我们就得仔细考虑分支策略了。&lt;/p&gt;
+&lt;h3 id="4-详细设计allocate策略"&gt;&amp;lt;4&amp;gt; 详细设计&lt;code&gt;allocate&lt;/code&gt;策略&lt;/h3&gt;
+&lt;p&gt;我们定义私有方法&lt;code&gt;divide_pool&lt;/code&gt;，只能类内访问。这个方法封装切内存块并接到链表这一操作。&lt;br&gt;
+其内部逻辑为：先计算需要声明多少内存块，再遍历计算&lt;code&gt;start&lt;/code&gt;指针加上内存块的地址，将地址(此时为&lt;code&gt;int&lt;/code&gt;类型)强行转换为&lt;code&gt;FreeNode*&lt;/code&gt;类型，接着接在链表上。（类型转换下面也会讲到，此处使用&lt;code&gt;reinterpret_cast&lt;/code&gt;，因为要从&lt;code&gt;int&lt;/code&gt;转换到指针）
+在&lt;code&gt;allocate&lt;/code&gt;时，我们需要先看看申请内存的大小，一旦大于128我们直接调用&lt;code&gt;::operator new&lt;/code&gt;申请内存并返回，否则我们进行内存池操作。&lt;br&gt;
+首先我们要计算该内存块所属的自由链表下标&lt;code&gt;index&lt;/code&gt;，以及对齐后内存块大小&lt;code&gt;block_size&lt;/code&gt;。&lt;br&gt;
+接着我们为了提升代码可读性，声明一个链表头的引用：&lt;code&gt;FreeNode*&amp;amp; head = free_lists[index]&lt;/code&gt;。其实就是给&lt;code&gt;free_lists[index]&lt;/code&gt;起了个别名而已，没什么深层用意。&lt;br&gt;
+然后我们需要判断链表头是否为空：一旦为空，我们直接声明一个新节点出来，然后把节点挂在链表上，返回节点就完事。&lt;br&gt;
+接着我们判断内存池是否为空，如果为空，我们需要开辟内存池。我们&lt;code&gt;::operator new(4096)&lt;/code&gt;申请出来&lt;code&gt;4096&lt;/code&gt;字节的内存池，然后强转为&lt;code&gt;char*&lt;/code&gt;就行（此处使用&lt;code&gt;static_cast&lt;/code&gt;强转），接着让&lt;code&gt;pool_end = pool_start + 4096&lt;/code&gt;。&lt;br&gt;
+我们接着计算池子里还有多少能用的内存，命名为&lt;code&gt;available&lt;/code&gt;。这里的计算依赖于我们每一次申请完节点挂在链表以后，把pool_start向后挪（因为前面的内存都已经被占用了）。如果可用空间大于我们要申请的内存块大小（即&lt;code&gt;block_size&lt;/code&gt;），我们直接切块。&lt;br&gt;
+这里切块还要取个最小值，如果能切20块我们就切到20块，否则切能切的块数。这个属于是提前铺路了。把这个块数记为&lt;code&gt;count&lt;/code&gt;。&lt;br&gt;
+接着我们计算需要切块的字节数，即&lt;code&gt;count * block_size&lt;/code&gt;。&lt;br&gt;
+然后我们调用切内存的方法&lt;code&gt;divide_pool&lt;/code&gt;，给池子切出来好几块挂到链表上去。&lt;br&gt;
+之后我们做一下收尾工作，把&lt;code&gt;pool_start&lt;/code&gt;往后挪就ok，然后返回链表头指针。&lt;br&gt;
+可用空间如果不够，就涉及到了碎片管理的内容，我还没有深入学习到那里，所以暂时留白。&lt;br&gt;
+至此，&lt;code&gt;allocate&lt;/code&gt;的每一个分支我们都进行了相应的处理。&lt;/p&gt;
+&lt;h3 id="5-deallocate的实现"&gt;&amp;lt;5&amp;gt; &lt;code&gt;deallocate&lt;/code&gt;的实现&lt;/h3&gt;
+&lt;p&gt;仍然是破坏比建构简单。&lt;br&gt;
+当要&lt;code&gt;deallocate&lt;/code&gt;的内存大小小于MAX_BYTES时，我们就得用&lt;code&gt;::operator delete&lt;/code&gt;释放内存。&lt;br&gt;
+否则我们直接把节点归还就行。（有关这个“归还”，会跟着联合体一块讲了）&lt;/p&gt;</description></item><item><title>小型STL开发日志 allocator(1)</title><link>https://xxy-maimai.github.io/posts/post000011/</link><pubDate>Fri, 14 Aug 2026 20:43:26 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000011/</guid><description>&lt;h1 id="一-前言碎碎念"&gt;一 前言+碎碎念&lt;/h1&gt;
+&lt;p&gt;肯定有人会奇怪为什么排卡系统不继续写了，我先解释一下。&lt;br&gt;
+其实写排卡系统的时候，我就想着锻炼后端能力就行，前端随意，做的丑点也随便，于是我拿起&lt;code&gt;winform&lt;/code&gt;就开干，但是做一半我突然感觉拖控件设置属性什么的太麻烦了，而且界面不仅丑，更是几乎不知道怎么设计。&lt;br&gt;
+于是我问了问ai怎么把&lt;code&gt;C#&lt;/code&gt;的技术栈完美迁移到前端，它给了我&lt;code&gt;blazor&lt;/code&gt;这个选项，我就浅浅试了一下。但是做着做着我又没什么耐心了，毕竟前端要注意设计界面什么的，我实在是懒得搞。这种活还是留给ai干，前端佬活该被裁（手动狗头保命）。&lt;br&gt;
+于是我又陷入了百无聊赖的境界。我打开大肥鱼问了一下目前&lt;code&gt;C++&lt;/code&gt;和&lt;code&gt;C#&lt;/code&gt;的技术方向，大肥鱼在&lt;code&gt;C++&lt;/code&gt;上再次推荐了底层。我想着不如就再写写&lt;code&gt;STL&lt;/code&gt;吧，反正我挺喜欢这一块的（也许这会导致我成为冯诺1曼派，无所谓了）。&lt;br&gt;
+依旧询问大肥鱼，得知写&lt;code&gt;STL&lt;/code&gt;第一步要做出&lt;code&gt;allocator&lt;/code&gt;来。于是我开始写，写到一半被狠狠震撼了开始写这一篇。&lt;/p&gt;
+&lt;h1 id="二-学到的知识"&gt;二 学到的知识&lt;/h1&gt;
+&lt;h2 id="1-有关allocator本身"&gt;(1) 有关&lt;code&gt;allocator&lt;/code&gt;本身&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;allocator&lt;/code&gt;就是古&lt;code&gt;C++&lt;/code&gt;掌管任何容器的神，离了它谁也跑不起来，因为它是负责分配内存的模板类。&lt;br&gt;
+其设计思想为分配内存和填入数据分离，分别由两套相对的基本功能实现。
+基本功能就四个，之前写&lt;code&gt;vector&lt;/code&gt;的时候我也见识过了：&lt;code&gt;allocate&lt;/code&gt;，&lt;code&gt;deallocate&lt;/code&gt;，&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;。&lt;br&gt;
+一套是&lt;code&gt;allocate&lt;/code&gt;和&lt;code&gt;deallocate&lt;/code&gt;，一个负责分配内存，一个负责回收内存。
+另一套是&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;，一个负责填入数据，一个负责清除数据。
+写起来仍然要借助一些底层库，不过借助的都是一些像&lt;code&gt;malloc&lt;/code&gt;之类的不得不用的方法。&lt;/p&gt;
+&lt;h2 id="2-四个方法的实现"&gt;(2) 四个方法的实现&lt;/h2&gt;
+&lt;p&gt;这四个方法都是建立的那一方难，摧毁的那一方简单。果然这个世界是熵增的吗。（不过如果说内存重置为0，也算是熵减。。又在发癫了）&lt;br&gt;
+&lt;code&gt;allocate&lt;/code&gt;需要&lt;code&gt;malloc&lt;/code&gt;一块内存，成功返回内存，失败返回&lt;code&gt;std::bad_alloc()&lt;/code&gt;。&lt;br&gt;
+&lt;code&gt;deallocate&lt;/code&gt;直接&lt;code&gt;free&lt;/code&gt;掉，把内存上交堆管理器就行。&lt;br&gt;
+&lt;code&gt;construct&lt;/code&gt;尤其雷霆，我直接把代码贴在这里，下面的标题会仔细讲解：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;template&lt;/span&gt; &lt;span style="color:#f92672"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;typename&lt;/span&gt;... Args&lt;span style="color:#f92672"&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;void&lt;/span&gt; construct(T&lt;span style="color:#f92672"&gt;*&lt;/span&gt; p, Args&lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt;... args)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;::&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;new&lt;/span&gt; ((&lt;span style="color:#66d9ef"&gt;void&lt;/span&gt;&lt;span style="color:#f92672"&gt;*&lt;/span&gt;)p) T(std&lt;span style="color:#f92672"&gt;::&lt;/span&gt;forward&lt;span style="color:#f92672"&gt;&amp;lt;&lt;/span&gt;Args&lt;span style="color:#f92672"&gt;&amp;gt;&lt;/span&gt;(args)...);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;简单来说就是使用&lt;code&gt;placement new&lt;/code&gt;，在申请的内存上调用了构造函数。&lt;br&gt;
+&lt;code&gt;destroy&lt;/code&gt;也是很简单，直接调用析构。&lt;/p&gt;
+&lt;h2 id="3从construct学到的诸多内容"&gt;(3)从&lt;code&gt;construct&lt;/code&gt;学到的诸多内容&lt;/h2&gt;
+&lt;h3 id="1-参数包"&gt;&amp;lt;1&amp;gt; 参数包&lt;/h3&gt;
+&lt;p&gt;最直击我灵魂的是这个玩意，参数包。&lt;br&gt;
+我是真的第一次听说&lt;code&gt;C++&lt;/code&gt;还能有这种这么nb的东西。&lt;br&gt;
+简单来说，参数包就是把一坨各种类型的参数打了个包，需要的时候再拆包取用。&lt;br&gt;
+对于我们的&lt;code&gt;construct&lt;/code&gt;代码，大致是这样的：在&lt;code&gt;template &amp;lt;typename... Args&amp;gt;&lt;/code&gt;一行中，用泛型声明了Args是一个泛型的参数包类型，同时&lt;code&gt;...&lt;/code&gt;指定了声明的是参数包类型而不是普通类型。&lt;br&gt;
+在下面的参数列表中，&lt;code&gt;Args&amp;amp;&amp;amp;... args&lt;/code&gt;则表示传参进来一个转发引用（别急，下面会讲转发引用）的&lt;code&gt;args&lt;/code&gt;参数包，&lt;code&gt;...&lt;/code&gt;仍然表示声明。&lt;br&gt;
+在方法内部的&lt;code&gt;...&lt;/code&gt;则表示拆包，将数据取用，填入构造函数。&lt;/p&gt;
+&lt;h3 id="2-placement-new语法"&gt;&amp;lt;2&amp;gt; &lt;code&gt;placement new&lt;/code&gt;语法&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;placement new&lt;/code&gt;这个东西，我之前在写&lt;code&gt;vector&lt;/code&gt;听大肥鱼提到过，但是没深究，终于还是来折磨我了。&lt;br&gt;
+它的语法格式为：new （地址） 类型（参数），意为在地址处调用类型的构造函数。
+而在我们的代码中，&lt;code&gt;::new&lt;/code&gt;这里的&lt;code&gt;::&lt;/code&gt;表示使用全局的&lt;code&gt;new&lt;/code&gt;运算符，避免因重载而产生歧义。&lt;br&gt;
+&lt;code&gt;((void*)p)&lt;/code&gt;中，使用(void*)强转类型是安全的，因为任何指针都可以转为(void*)，而转换的目的是对齐颗粒度，因为&lt;code&gt;placement new&lt;/code&gt;强制要求地址为(void*)类型。&lt;br&gt;
+然后这一行一大坨代码直接给我吓哭了。连夜逃离&lt;code&gt;C++&lt;/code&gt;。不开玩笑的说今年这行代码将是最震撼我的一行。&lt;br&gt;
+后面构造函数参数列表里填的东西马上说。&lt;/p&gt;
+&lt;h3 id="3-完美转发"&gt;&amp;lt;3&amp;gt; &lt;code&gt;完美转发&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这个算是很抽象的一个概念，我也没搞太明白，我就按着我的理解说说。&lt;br&gt;
+首先是&lt;code&gt;construct&lt;/code&gt;参数列表里的&lt;code&gt;Args&amp;amp;&amp;amp;... args&lt;/code&gt;。这个&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;不是我上次写后端的移动语义，它是一个转发引用，与下面的&lt;code&gt;std::forward&lt;/code&gt;搭配使用。&lt;br&gt;
+那么怎么区分&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;到底是完美转发还是移动语义呢？大肥鱼跟我说要看有没有发生类型推导，发生了类型推导（一般只在泛型会发生类型推导罢）就是完美转发，否则是普通的移动语义。&lt;br&gt;
+而&lt;code&gt;std::forward&lt;/code&gt;和&lt;code&gt;T&amp;amp;&amp;amp;&lt;/code&gt;两个东西又有很大的区别。我又问了大肥鱼，&lt;code&gt;T&amp;amp;&amp;amp;&lt;/code&gt;是真正发挥类型推导作用的，放在参数列表里的，开启完美转发开关的占位符，而&lt;code&gt;std::forward&lt;/code&gt;则是在函数体内部调用，强制转换实参类型的一个方法。&lt;br&gt;
+说了这么多形式的内容，该说说完美转发究竟是什么东西了。&lt;br&gt;
+&lt;code&gt;C++&lt;/code&gt;最注重的就是性能，而性能是一点点抠出来的，我们的&lt;code&gt;allocator&lt;/code&gt;当然不能落后在起跑线上，即使是&lt;code&gt;construct&lt;/code&gt;这种地方也要时刻小心多余的开销——例如拷贝。&lt;br&gt;
+而&lt;code&gt;C++&lt;/code&gt;拥有左值、右值两种值，其中左值是需要拷贝的，右值相当于常量无需拷贝，如果在&lt;code&gt;construct&lt;/code&gt;时，&lt;code&gt;placement new&lt;/code&gt;那里直接填写&lt;code&gt;T(args...)&lt;/code&gt;，即使调用时填写了右值，也要再次进行拷贝，开销完全无法控制，因此完美转发可以保留左值和右值属性，直接避免了更大的开销，太美妙了。&lt;br&gt;
+所以我们用&lt;code&gt;T&amp;amp;&amp;amp;&lt;/code&gt;声明了这里的值需要完美拷贝，而&lt;code&gt;std::forward&lt;/code&gt;相当于一个类型转换器，因为&lt;code&gt;args&lt;/code&gt;作为具名变量属于左值，直接往构造函数里塞会挨个拷贝，出现上面提到的开销大的问题，所以使用&lt;code&gt;std::forward&lt;/code&gt;转换了类型，把该右值的转换为右值，降低开销。&lt;br&gt;
+我的天哪。理解了这个玩意简直是大脑升级。&lt;/p&gt;</description></item><item><title>排卡系统开发日志(1)</title><link>https://xxy-maimai.github.io/posts/post000010/</link><pubDate>Wed, 12 Aug 2026 20:35:38 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000010/</guid><description>&lt;h1 id="一-前言"&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;由于我实在想做点东西但又不知道做什么，我的一个sb朋友给我提了个主意，就是做一个街机排卡系统。&lt;br&gt;
+目前我对这个系统的设想很简单，就是做一个前后端搭配的应用，后端负责提供排卡数据，前端供用户使用。&lt;br&gt;
+后端使用&lt;code&gt;c++ + drogon&lt;/code&gt;开发，&lt;code&gt;drogon&lt;/code&gt;是一个不错的框架，在&lt;code&gt;c++17&lt;/code&gt;及更高标准下编码运行。&lt;br&gt;
+前端当然就可以随便开发了，只要具备访问网络的功能就都可以，目前作为简单项目先搞&lt;code&gt;windows&lt;/code&gt;端，使用&lt;code&gt;winform&lt;/code&gt;开发。&lt;br&gt;
+功能不多，有增删查机厅，排队、出队和回到队尾等等功能。&lt;br&gt;
+目前&lt;code&gt;c++&lt;/code&gt;后端的内容开发的差不多了，可以再完善完善，接下来可以搞前端。&lt;/p&gt;
+&lt;h1 id="二-学到的知识"&gt;二 学到的知识&lt;/h1&gt;
+&lt;h2 id="1-网络编程基本思路"&gt;(1) 网络编程基本思路&lt;/h2&gt;
+&lt;p&gt;这可以算是我第二次做网络编程，第一次是写了个简单&lt;code&gt;chatroom&lt;/code&gt;，用&lt;code&gt;socket&lt;/code&gt;实现，原理也不复杂，主要是明白了&lt;code&gt;socket&lt;/code&gt;的通信过程。&lt;br&gt;
+而这次则是真正做出一个&lt;code&gt;http&lt;/code&gt;服务器，有诸多&lt;code&gt;RESTful API&lt;/code&gt;可以调用。&lt;br&gt;
+注册&lt;code&gt;handler&lt;/code&gt;的过程，可以说是我学到的精华。&lt;br&gt;
+首先是&lt;code&gt;RESTful API&lt;/code&gt;的思想，这个东西我确实是第一次听说，但是它实际上就是常说的“增删改查”四种操作的集合。&lt;br&gt;
+服务端最常见的四种请求也就是这四种了，所以我们要设计&lt;code&gt;api&lt;/code&gt;应对这些请求。&lt;br&gt;
+而前端访问这些&lt;code&gt;api&lt;/code&gt;时，获取到一串数据（这个项目获取到的都是&lt;code&gt;JSON&lt;/code&gt;字符串），再进行数据处理，实现相应的功能。&lt;br&gt;
+注册&lt;code&gt;handler&lt;/code&gt;时需要往里塞一个函数作为参数，是真正要实现的功能。&lt;br&gt;
+这个函数的参数列表也有讲究。首先要放一个&lt;code&gt;const HttpRequestPtr&amp;amp; req&lt;/code&gt;作为接受请求内容的变量，然后需要一个&lt;code&gt;std::function&amp;lt;void (const HttpResponse&amp;amp; resp)&amp;gt;&amp;amp;&amp;amp; callback&lt;/code&gt;，此处&lt;code&gt;resp&lt;/code&gt;作为存储相应内容的变量，&lt;code&gt;callback&lt;/code&gt;是回调函数，在&lt;code&gt;handler&lt;/code&gt;函数中要被调用。&lt;br&gt;
+关于这一块内容，很多我不明白的地方（比如为什么没有给出&lt;code&gt;callback&lt;/code&gt;的具体定义，但是它也能执行回调的功能）的答案都藏在&lt;code&gt;drogon&lt;/code&gt;库里面，所以我暂时也懒得深究了。&lt;br&gt;
+&lt;code&gt;handler函数体&lt;/code&gt;里面需要进行业务操作，最后一定要&lt;code&gt;callback&lt;/code&gt;一下，不然服务器等不到回调就卡死了（其实粗略、不严谨地理解，回调大概就是返回一个值）。&lt;br&gt;
+注册&lt;code&gt;api&lt;/code&gt;完毕以后就可以开始监听了。&lt;br&gt;
+大体的思路就是这样。&lt;/p&gt;
+&lt;h2 id="2-许多语法特性"&gt;(2) 许多语法特性&lt;/h2&gt;
+&lt;h3 id="1-stdoptional的应用"&gt;&amp;lt;1&amp;gt; std::optional的应用&lt;/h3&gt;
+&lt;p&gt;这个东西以前我确实没接触过，我对c++11的很多特性甚至都不太了解，更别提std::optional这种c++17的内容了。&lt;br&gt;
+简单来说，它就是解决“当失败时，返回nullptr不安全”的问题。（当然此处nullptr可以换成其他的东西，这里举个例子）&lt;br&gt;
+&lt;code&gt;std::optional&lt;/code&gt;是一个模板类，例如我写一个函数：&lt;code&gt;std::optional&amp;lt;std::string&amp;gt; func(){}&lt;/code&gt;，在里面定义一个&lt;code&gt;std::optional&amp;lt;std::string&amp;gt; opt&lt;/code&gt;，然后下面查找某个东西，查找成功时写&lt;code&gt;return opt&lt;/code&gt;，失败则写&lt;code&gt;return std::nullopt&lt;/code&gt;，此时假如成功了，就会返回一个正常的字符串，失败时会返回&lt;code&gt;std::nullopt&lt;/code&gt;，而这个&lt;code&gt;std::nullopt&lt;/code&gt;就是特地指“失败”含义的一个返回值。&lt;br&gt;
+如果没有&lt;code&gt;std::optional&lt;/code&gt;，我们可能会写：&lt;code&gt;return &amp;quot;not found&amp;quot;&lt;/code&gt;或者别的什么东西，再或者我们在定义函数时会写&lt;code&gt;std::string* func(){}&lt;/code&gt;，失败时返回&lt;code&gt;nullptr&lt;/code&gt;，但是这两种方案都不够优雅，都有安全问题。有了新标准，我们还是不要这么做的好。&lt;br&gt;
+它对于增删改查这种操作十分友好，因为经常会遇到失败、冲突等等问题，调用数据类方法增删改查，返回时直接获得一个&lt;code&gt;std::nullopt&lt;/code&gt;，就可以判断失败，还没有安全问题，在&lt;code&gt;handler&lt;/code&gt;中优雅处理，岂不美哉。&lt;/p&gt;
+&lt;h3 id="2-线程安全问题"&gt;&amp;lt;2&amp;gt; 线程安全问题&lt;/h3&gt;
+&lt;p&gt;线程安全的话，我前面做&lt;code&gt;chatroom&lt;/code&gt;其实遇到过，就是对于异步的读写操作，线程之间可能有冲突，这里需要用线程锁给他锁起来防止数据紊乱。&lt;br&gt;
+这个项目中，使用&lt;code&gt;std::shared_mutex&lt;/code&gt;作为线程锁，读数据时使用&lt;code&gt;std::shared_lock&lt;/code&gt;进行保护，写数据时使用&lt;code&gt;std::unique_lock&lt;/code&gt;进行保护。&lt;br&gt;
+这一点要说的其实不多，注意到异步线程导致的数据读写冲突问题就可以了。&lt;/p&gt;
+&lt;h3 id="3-stdfunction的使用"&gt;&amp;lt;3&amp;gt; std::function的使用&lt;/h3&gt;
+&lt;p&gt;顾名思义，&lt;code&gt;std::function&lt;/code&gt;是用于存储可复制的可调用对象的容器。说人话，它是存函数（方法）的。&lt;br&gt;
+它的创建方式大概是：&lt;code&gt;std::function&amp;lt;typename (args1, args2, ...)&amp;gt; func&lt;/code&gt;，其中&lt;code&gt;typename&lt;/code&gt;代表函数返回值，&lt;code&gt;(args1, args2)&lt;/code&gt;作为函数参数列表。&lt;br&gt;
+这个东西在这个项目里主要是帮助解耦的，没有太多要提的地方，只是觉得这个确实很好用。&lt;/p&gt;
+&lt;h3 id="4-jsoncpp的使用"&gt;&amp;lt;4&amp;gt; jsoncpp的使用&lt;/h3&gt;
+&lt;p&gt;这个玩意应该是&lt;code&gt;c++&lt;/code&gt;中专门处理&lt;code&gt;json&lt;/code&gt;的普遍使用库了。
+它用起来还蛮方便的，比如我要创建一个&lt;code&gt;json&lt;/code&gt;数组没必要非得在声明时就写清楚，直接&lt;code&gt;Json::Value arr&lt;/code&gt;，后面&lt;code&gt;append()&lt;/code&gt;直接自动搞成数组类型了。&lt;br&gt;
+这个主要是在前后端通信的时候使用，也没有太多要说的。但是真的好用我靠。&lt;/p&gt;</description></item><item><title>4k模拟器更新</title><link>https://xxy-maimai.github.io/posts/post000009/</link><pubDate>Sun, 02 Aug 2026 19:51:23 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000009/</guid><description>&lt;h1 id="更新内容"&gt;更新内容&lt;/h1&gt;
+&lt;p&gt;也是更新了一波这个小玩具。&lt;br&gt;
+这次更新加了一个简陋到只有三个按钮的主界面，分别是开始、设置和关于。&lt;br&gt;
+开始顾名思义开始游戏。&lt;br&gt;
+设置里面分为三项，流速，输入偏移和按键绑定。&lt;br&gt;
+流速、偏移使用按钮调节，按键绑定进去按顺序按四个键就好。&lt;br&gt;
+关于是写的不如不写的类似readme的东西。&lt;/p&gt;
+&lt;h1 id="开发历程"&gt;开发历程&lt;/h1&gt;
+&lt;p&gt;其实这次最大的精力都放在界面交互上了，raylib包括别的一些库当然也没有内置的交互接口，只能自己搓一坨大便出来。&lt;br&gt;
+然后是关于，英文版是自己写+ai改出来的，可能也有词不达意的地方。。。算了就这样吧。&lt;/p&gt;</description></item><item><title>对vector的较高级实现</title><link>https://xxy-maimai.github.io/posts/post000008/</link><pubDate>Wed, 29 Jul 2026 09:49:41 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000008/</guid><description>&lt;p&gt;昨天写完那篇blog之后继续写了vector，写到今天上午大致完工了。&lt;br&gt;
+写完这堆以后收获也是颇丰，依旧简单写写笔记。&lt;/p&gt;
+&lt;h2 id="1写在前面"&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id="1学到的知识"&gt;(1)学到的知识&lt;/h3&gt;
+&lt;h4 id="1stdallocator的应用"&gt;&amp;lt;1&amp;gt;&lt;code&gt;std::allocator&lt;/code&gt;的应用&lt;/h4&gt;
+&lt;p&gt;是的没错，我用&lt;code&gt;std::allocator&lt;/code&gt;重构了所有内容。&lt;br&gt;
+这个东西确实是很好用，也便于内存管理。&lt;br&gt;
+这次我主要用了四个方法：&lt;code&gt;allocate&lt;/code&gt;、&lt;code&gt;deallocate&lt;/code&gt;、&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;。&lt;br&gt;
+首先是&lt;code&gt;allocate&lt;/code&gt;，我用的是&lt;code&gt;allocate(容量)&lt;/code&gt;这一重载，用于申请一块没有任何内容的内存。&lt;br&gt;
+然后是&lt;code&gt;deallocate&lt;/code&gt;，使用&lt;code&gt;deallocate(内存开头，容量)&lt;/code&gt;这一重载，用于释放一块内存。&lt;br&gt;
+接着是&lt;code&gt;construct&lt;/code&gt;，使用&lt;code&gt;construct(内存地址，值)&lt;/code&gt;重载，用于在申请的内存上构建一个元素。&lt;br&gt;
+最后是&lt;code&gt;destroy&lt;/code&gt;，使用&lt;code&gt;destroy(内存地址)&lt;/code&gt;重载，用于析构指定地址的元素。&lt;br&gt;
+这四个方法直接替代了&lt;code&gt;new[] - delete[]&lt;/code&gt;关键字，体现了c++对于开发人员的高自由度。（不如说是高bug发生率）&lt;/p&gt;
+&lt;h3 id="2关于异常处理"&gt;(2)关于异常处理&lt;/h3&gt;
+&lt;p&gt;我并没有写异常处理，毕竟这只是一个练手项目。如果我有精力的话我可能会补上。&lt;/p&gt;
+&lt;h3 id="3利用stdallocator重构insert和erase的坑"&gt;(3)利用&lt;code&gt;std::allocator&lt;/code&gt;重构&lt;code&gt;insert&lt;/code&gt;和&lt;code&gt;erase&lt;/code&gt;的坑&lt;/h3&gt;
+&lt;p&gt;我们要明白一个事，&lt;code&gt;allocator&lt;/code&gt;开辟的内存是野的，直接访问赋值会出问题，因为在内存上没有任何构造，只能以&lt;code&gt;construct&lt;/code&gt;方式赋值。&lt;br&gt;
+我被这个坑了。不过都是小问题，改两笔的事。&lt;br&gt;
+问题具体出现在挪元素和赋值新元素的地方，不过都好改。很简单解决。&lt;/p&gt;
+&lt;h2 id="2实现的功能"&gt;2.实现的功能&lt;/h2&gt;
+&lt;h3 id="1reserve"&gt;(1)&lt;code&gt;reserve&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;reserve&lt;/code&gt;是用于预订空间的，也就是扩容。&lt;br&gt;
+这里的实现其实蛮简单的，就是普通的扩容操作，前面写过好多次了。&lt;/p&gt;
+&lt;h3 id="2resize"&gt;(2)&lt;code&gt;resize&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;resize&lt;/code&gt;很麻烦，我们一点点看。&lt;br&gt;
+首先，我们要明白&lt;code&gt;resize&lt;/code&gt;可能缩小容量也可能增大容量，所以要条件判断。&lt;br&gt;
+如果是缩容，我们直接把尾部数据&lt;code&gt;destroy&lt;/code&gt;，最后&lt;code&gt;_finish = _start + new_size&lt;/code&gt;就ok了。&lt;br&gt;
+如果是扩容，我们还得分类讨论。&lt;br&gt;
+情况一是&lt;code&gt;new_size &amp;lt;= old_capacity&lt;/code&gt;，此时无需扩容；情况二是&lt;code&gt;new_size &amp;gt; old_capacity&lt;/code&gt;，此时&lt;code&gt;new_capacity&lt;/code&gt;的值还需要通过计算&lt;code&gt;max(new_size, old_capacity * 2)&lt;/code&gt;来确定。&lt;br&gt;
+无论哪种情况，新&lt;code&gt;allocate&lt;/code&gt;的内存都要&lt;code&gt;construct&lt;/code&gt;一次，这里用的重载就没有值了，表示默认构造。&lt;/p&gt;
+&lt;h3 id="3shrink_to_fit"&gt;(3)&lt;code&gt;shrink_to_fit&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这个也蛮简单的。开辟一块新内存，大小等于&lt;code&gt;size()&lt;/code&gt;，把数据丢进去，释放原内存，改指针，完事。&lt;/p&gt;
+&lt;h2 id="3总结"&gt;3.总结&lt;/h2&gt;
+&lt;p&gt;写完这个vector，确实是懂了很多内存的相关知识和思想，现在写底层的确实越来越少了，希望以后能锻炼这方面的能力吧。&lt;/p&gt;</description></item><item><title>对vector的简单实现</title><link>https://xxy-maimai.github.io/posts/post000007/</link><pubDate>Tue, 28 Jul 2026 09:17:44 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000007/</guid><description>&lt;p&gt;最近有些颓废，但也尝试了写点新东西。我找ai问了问意见，决定写个简单的vector出来。&lt;br&gt;
+其实我也没想到vector实现起来的原理并不复杂，以前看STL源码完全看不懂。&lt;br&gt;
+当然我没用&lt;code&gt;std::allocator&lt;/code&gt;实现分配内存，我只用了&lt;code&gt;new&lt;/code&gt;和&lt;code&gt;delete&lt;/code&gt;。&lt;br&gt;
+简单写写笔记。&lt;/p&gt;
+&lt;h2 id="1写在前面"&gt;1.写在前面&lt;/h2&gt;
+&lt;h3 id="1学到的一些语法知识"&gt;(1)学到的一些语法知识&lt;/h3&gt;
+&lt;h4 id="1const限定类方法"&gt;&amp;lt;1&amp;gt;&lt;code&gt;const&lt;/code&gt;限定类方法&lt;/h4&gt;
+&lt;p&gt;之前我没有仔细研究过c++的class里各种限制，写这个算是学到一点新东西，就是在声明类方法如下：&lt;code&gt;void f() {}&lt;/code&gt;时，如果创建的是&lt;code&gt;const&lt;/code&gt;对象，需要在结尾加上一个&lt;code&gt;const&lt;/code&gt;修饰符表明这个方法对于&lt;code&gt;const&lt;/code&gt;对象可用（e.g. &lt;code&gt;void f() const {}&lt;/code&gt;），以前还真没注意过。&lt;/p&gt;
+&lt;h4 id="2常引用传参"&gt;&amp;lt;2&amp;gt;常引用传参&lt;/h4&gt;
+&lt;p&gt;这个其实我以前见过，但是我一直没搞懂什么意思，才知道它和普通传参的区别。&lt;br&gt;
+普通传参如&lt;code&gt;void f(int x) {}&lt;/code&gt;，此时&lt;code&gt;x&lt;/code&gt;是要进行拷贝的，如果说&lt;code&gt;x&lt;/code&gt;不是简单的类型而是内部有一堆数据的类型，这里的拷贝开销会很大，所以采用如下形式：&lt;code&gt;void f(const T&amp;amp; x) {}&lt;/code&gt;减少开销，这无疑是明智的，不用执行大量的构造函数，也省了内存。&lt;br&gt;
+这里的常引用传参实际上就是访问了传进来参数的数据，并且&lt;code&gt;const&lt;/code&gt;限定了以只读形式访问，安全性up。&lt;/p&gt;
+&lt;h4 id="3指针加减法"&gt;&amp;lt;3&amp;gt;指针加减法&lt;/h4&gt;
+&lt;p&gt;没想到我还能在这种基础问题上拿不准。&lt;br&gt;
+其实我之前没怎么写过指针相关操作，所以我一直以为指针减法减出来的是字节数，我还想除以&lt;code&gt;sizeof(T)&lt;/code&gt;来着，问了ai才发现返回的已经是元素个数了。。。是我基础不扎实了。
+还有一个衍生问题就是&lt;code&gt;++&lt;/code&gt;和&lt;code&gt;--&lt;/code&gt;运算符，对于一个简单类型的变量/指针来说，&lt;code&gt;i++&lt;/code&gt;和&lt;code&gt;++i&lt;/code&gt;（&lt;code&gt;--&lt;/code&gt;同理）没什么区别，都是计算机的&lt;code&gt;add&lt;/code&gt;指令之类的，但是对于指针，这个区别很大，主要在于&lt;code&gt;i++&lt;/code&gt;需要执行构造函数，而&lt;code&gt;++i&lt;/code&gt;不需要，这里又是开销的问题。所以以后我觉得还是把&lt;code&gt;++&lt;/code&gt;作为“向后移动一位”的意思来理解吧。&lt;/p&gt;
+&lt;h4 id="4delete和delete的区别"&gt;&amp;lt;4&amp;gt;&lt;code&gt;delete&lt;/code&gt;和&lt;code&gt;delete[]&lt;/code&gt;的区别&lt;/h4&gt;
+&lt;p&gt;这个也是因为我不怎么写c++的指针相关内容导致的。&lt;br&gt;
+&lt;code&gt;delete&lt;/code&gt;只释放了后面跟的一个对象的那一块内存，而&lt;code&gt;delete[]&lt;/code&gt;释放了后面跟着的一大块内存。
+我们这里扩容声明的新内存都是通过&lt;code&gt;new[]&lt;/code&gt;的形式来声明的，内存头部已经存放了数组大小的数据，所以我们调用&lt;code&gt;delete[]&lt;/code&gt;会自己释放到对应位置就停止，这才是正确的做法，不然内存堆得越来越多就炸了。&lt;/p&gt;
+&lt;h3 id="2防御性编程"&gt;(2)防御性编程&lt;/h3&gt;
+&lt;p&gt;这一点的体现主要是在扩容的时候，开辟新内存以后不能直接释放旧内存，不然开辟失败了旧数据也丢了，风险很大，要等到开辟完毕以后再释放旧内存，这也是c++的设计哲学罢。&lt;/p&gt;
+&lt;h3 id="3size_t的用途"&gt;(3)size_t的用途&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;size_t&lt;/code&gt;这东西实际上就是专门用来存储容器大小数据的类型，所以包括&lt;code&gt;size()&lt;/code&gt;、&lt;code&gt;capacity&lt;/code&gt;在内的方法返回值都是&lt;code&gt;size_t&lt;/code&gt;，&lt;code&gt;for&lt;/code&gt;循环遍历的时候如果不用&lt;code&gt;iterator&lt;/code&gt;也要用&lt;code&gt;size_t&lt;/code&gt;来声明循环变量。&lt;/p&gt;
+&lt;h2 id="2基本功能"&gt;2.基本功能&lt;/h2&gt;
+&lt;p&gt;vector实际上维护的是一块连续的内存，而我们只需要手动维护&lt;code&gt;start&lt;/code&gt;，&lt;code&gt;finish&lt;/code&gt;和&lt;code&gt;end_of_storage&lt;/code&gt;指针。&lt;/p&gt;
+&lt;h3 id="1push_back"&gt;(1)&lt;code&gt;push_back&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;push_back&lt;/code&gt;的逻辑很简单，首先检查&lt;code&gt;finish == end_of_storage&lt;/code&gt;是否成立，如果成立说明需要扩容，不成立就直接添加元素。&lt;br&gt;
+扩容的时候不是在原基础上扩容，而是开辟新内存，因为原基础扩容可能访问到后续的危险内存，程序直接返回&lt;code&gt;3221225477&lt;/code&gt;了。&lt;br&gt;
+我们可以申请一块新内存：&lt;code&gt;T* new_mem = new T[new_capacity]&lt;/code&gt;，然后将数据一个一个放进&lt;code&gt;new_mem&lt;/code&gt;里面，这样就完成了扩容。&lt;br&gt;
+&lt;code&gt;new_capacity&lt;/code&gt;是依情况而定的，如果&lt;code&gt;capacity() == 0&lt;/code&gt;那么&lt;code&gt;new_capacity&lt;/code&gt;为&lt;code&gt;1&lt;/code&gt;，否则直接翻倍。
+无论是否扩容，我们都要执行&lt;code&gt;*finish = val; ++finish&lt;/code&gt;的类似语句，这样一个&lt;code&gt;push_back&lt;/code&gt;就完成了。&lt;/p&gt;
+&lt;h3 id="2insert和erase"&gt;(2)&lt;code&gt;insert&lt;/code&gt;和&lt;code&gt;erase&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;这俩玩意逻辑挺相似的。&lt;br&gt;
+&lt;code&gt;insert&lt;/code&gt;同样要判断是否扩容，这里我们要获取旧的元素下标，因为如果扩容旧内存就直接失效了，我们用指针减法存下来&lt;code&gt;index&lt;/code&gt;，扩容完毕以后用&lt;code&gt;pos = start + index&lt;/code&gt;加回来就好。&lt;br&gt;
+而&lt;code&gt;insert&lt;/code&gt;的移动元素是从后往前挪，从&lt;code&gt;finish&lt;/code&gt;这个空位开始依次执行&lt;code&gt;*it = *(it - 1)&lt;/code&gt;（别急，迭代器马上就说怎么实现的），这是防止元素覆盖问题。&lt;br&gt;
+腾出来相应的位置直接&lt;code&gt;*pos = val&lt;/code&gt;就好了。很简单。最后&lt;code&gt;++finish&lt;/code&gt;。&lt;br&gt;
+&lt;code&gt;erase&lt;/code&gt;相对简单，它不用考虑扩容问题，只需要判断&lt;code&gt;empty() || pos == finish&lt;/code&gt;并返回&lt;code&gt;nullptr&lt;/code&gt;即可。&lt;br&gt;
+这里我们就要从前往后挪了，直接把那个位置的数据覆盖掉，最后执行&lt;code&gt;--finish; finish-&amp;gt;~T()&lt;/code&gt;（因为原来的finish前一位是有数据的，这里给它释放置空）。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(4)</title><link>https://xxy-maimai.github.io/posts/post000006/</link><pubDate>Mon, 20 Jul 2026 16:54:03 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000006/</guid><description>&lt;p&gt;天啊，今天我居然又有精神写这个东西，而且我还给写完了。&lt;br&gt;
+今天修了点bug，然后加了字符串解析，以及优化了一些其他的东西。&lt;br&gt;
+字符串解析的话，以&amp;quot;&amp;amp;&amp;ldquo;字符开头的均为元数据，即偏移、bpm以及拍号；tap以单独数字表示，hold以数字+h+持续拍号+冒号+持续时值表示，逗号分隔，加号表示多押，这些都很好写，比我去年写simai语法解析简单多了。&lt;br&gt;
+顺便学习了一波json解析，也是很简单，阅读设置文件用到了。&lt;br&gt;
+这样的话这个项目大概就完成了，先这样吧。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(3)</title><link>https://xxy-maimai.github.io/posts/post000005/</link><pubDate>Sun, 19 Jul 2026 21:29:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000005/</guid><description>&lt;p&gt;孩子们，今天我也是工作量超标了。我居然有劲头给hold的渲染以及判定全都写好。&lt;br&gt;
+到头来也没有认真读osu源码，还是自己想的居多，虽然也问ai参考了一下逻辑，但是全是自己写的代码，无ai成分。&lt;br&gt;
+具体实现逻辑其实并不难，渲染的话，复制平铺这一点我想到了，但是尾部的裁剪我是没考虑到，所以尝试实现了；在判定时轨道底部会有蒙版造出来吃掉的感觉，也实现出来了。&lt;br&gt;
+判定的话，也是加了一些奇奇怪怪的bool值给他做出来了。其实也不算太复杂。&lt;br&gt;
+今天可是给我累死了，先这样吧。&lt;/p&gt;</description></item><item><title>伟大的决定</title><link>https://xxy-maimai.github.io/posts/post000004/</link><pubDate>Sat, 18 Jul 2026 19:46:11 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000004/</guid><description>&lt;p&gt;哎。感觉还是不能糊弄的写完4k模拟器。所以我决定阅读osu的源码，学习一下它的处理逻辑。这将会很疯狂。&lt;br&gt;
+这个源码其实读起来不算简单。毕竟是大项目，很多叠了好几层文件的方法和类。不过我会尽力尝试。&lt;br&gt;
+而且我斥巨资购买的5块deepseek api还没用完呢。我得用用，辅助我读源码。就这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(2)</title><link>https://xxy-maimai.github.io/posts/post000003/</link><pubDate>Wed, 15 Jul 2026 21:24:04 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000003/</guid><description>&lt;p&gt;今天又写了点。已经把主要内容写完了。&lt;br&gt;
+优化了下代码结构，然后补充了点新内容，现在播放正常谱面并且游玩已经可以了。唯一的遗憾是这个hold的逻辑我写的是一坨屎。&lt;br&gt;
+具体原因就是hold头同tap判定，hold身体和尾巴按住就判，但是这个按住吧，它是不受hold头影响的。也就是hold头完全没有起到控制后续hold的作用。这点，当作feature吧。&lt;br&gt;
+现在只差读取谱面文件翻译播放了。但是这个不太好做，我一向是不擅长写字符串解析的。哎。想写了再写吧。有点无助。先这样。&lt;/p&gt;</description></item><item><title>4k模拟器开发日志(1)</title><link>https://xxy-maimai.github.io/posts/post000002/</link><pubDate>Tue, 14 Jul 2026 21:43:33 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000002/</guid><description>&lt;p&gt;上学那会就心血来潮想写一个4k模拟器。暑假有空了。看我超级搭路。&lt;br&gt;
+哎。我代码管理太垃圾了。基本没法看。这就是$0\%$AI的屎山之力吗？有点意思。&lt;br&gt;
+简单说说开发思路吧。&lt;br&gt;
+使用C# + Raylib进行开发。&lt;br&gt;
+首先是基本界面。很好做，随便拿画图画一个轨道，四个拼一块。按下按键换一张图。&lt;br&gt;
+音乐播放直接用raylib内置播放api了。省时省力。&lt;br&gt;
+note的话。目前我是这样想的。传统4k它的键型只有tap和hold。tap很好说。hold的话，我准备拆成三部分来判定：hold头（同tap判定），hold身（按住就max），以及hold尾（同hold身，无尾判，尾判是坏文明）。&lt;br&gt;
+tap已经做好了，判定区间：±40ms为max，±80ms为great，&amp;gt;80ms为miss。无过早判定。我怕连崩之类的。虽然我也不知道这样能否规避。&lt;br&gt;
+这个判定文字显示蛮抽象的。为了做出渐出效果我直接网上蒙color了。效果果不其然是一坨。凑活用吧。而且这个逻辑之类的也是逆天。&lt;br&gt;
+先写到这吧。洗洗睡了。还得大战作业。&lt;/p&gt;</description></item><item><title>带空气阻力下落运动v-t关系式推导</title><link>https://xxy-maimai.github.io/posts/post000001/</link><pubDate>Mon, 13 Jul 2026 10:55:47 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000001/</guid><description>&lt;p&gt;哎。心酸。本来在我朋友的博客上写过了一次这个东西。结果经历一周访问不了他也不修。我只能提着昨日种种千辛万苦。&lt;br&gt;
+但是我居然™的从ai聊天记录里翻出来了这篇，虽然翻出来的计算结果是错的，但是我能再改改用。可惜的是还有两篇找不到。我还得自己写一遍。不过那两篇一个是高考题。一个是未解决的问题。无所吊谓说是。&lt;br&gt;
+正文：&lt;br&gt;
+我们受力分析：
+&lt;/p&gt;
+$$mg-f=ma$$&lt;p&gt;
+将$f=\frac{1}{2}\rho Sv^2$代入，并且写为微分形式：
+&lt;/p&gt;
+$$\frac{1}{m}(mg-\frac{1}{2}\rho Sv^2) = \frac{dv}{dt}$$&lt;p&gt;
+分离变量：
+&lt;/p&gt;
+$$dt=\frac{m}{mg-\frac{1}{2}\rho Sv^2}\cdot dv$$&lt;p&gt;
+积分：
+&lt;/p&gt;
+$$\int dt=\int \frac{m}{mg-\frac{1}{2}\rho Sv^2} dv$$&lt;p&gt;
+接下来处理积分问题。
+&lt;/p&gt;
+$$\int \frac{m}{mg-\frac{1}{2}\rho Sv^2}dv=m\int\frac{1}{mg-\frac{1}{2}\rho Sv^2}dv$$&lt;p&gt;
+我们研究如下形式的积分：
+&lt;/p&gt;
+$$\int \frac{1}{a-bv^2}dv=\int\left(\frac{A}{\sqrt{a}+\sqrt{b}v}+\frac{B}{\sqrt{a}-\sqrt{b}v}\right)dv$$&lt;p&gt;
+通分，得到&lt;/p&gt;
+$$\sqrt{a}(A+B)+\sqrt{b}v(B-A)=1$$&lt;p&gt;
+则
+&lt;/p&gt;
+$$
+\begin{cases}
+\sqrt{a}\,(A+B)=1 \\
+B-A=0
+\end{cases}
+$$&lt;p&gt;
+解得&lt;/p&gt;
+$$A=B=\frac{1}{2\sqrt{a}}$$&lt;p&gt;
+代回积分式，整理得到
+&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\left(\int \frac{1}{v+\sqrt{\frac{a}{b}}}dv - \int \frac{1}{v-\sqrt{\frac{a}{b}}}dv\right)$$&lt;p&gt;
+积分并整理得到&lt;/p&gt;
+$$\frac{1}{2\sqrt{ab}}\ln\left|\frac{\sqrt{a}+\sqrt{b}v}{\sqrt{a}-\sqrt{b}v}\right|+C$$&lt;p&gt;
+代入$a=mg$，$b=\frac{1}{2}\rho S$得到原积分等于
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+亦即
+&lt;/p&gt;
+$$t=\frac{m}{\sqrt{2\rho mgS}}\ln\left|\frac{\sqrt{2mg}+\sqrt{\rho S}v}{\sqrt{2mg}-\sqrt{\rho S}v}\right|$$&lt;p&gt;
+推导完毕。&lt;br&gt;
+P.S.反解的话，我懒得搞了。好像可以用反双曲正切搞？随便了。&lt;/p&gt;</description></item><item><title>Test</title><link>https://xxy-maimai.github.io/posts/post000000/</link><pubDate>Sat, 11 Jul 2026 11:36:02 +0800</pubDate><guid>https://xxy-maimai.github.io/posts/post000000/</guid><description>&lt;p&gt;这是一个测试文章，也是此博客第一个文章。欢迎来玩。&lt;/p&gt;</description></item></channel></rss>

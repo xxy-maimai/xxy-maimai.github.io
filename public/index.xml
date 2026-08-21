@@ -6,8 +6,95 @@
     <description>Recent content on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 16 Aug 2026 16:52:24 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 21 Aug 2026 09:57:47 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>汇编学习(1)</title>
+      <link>http://localhost:1313/posts/post000014/</link>
+      <pubDate>Fri, 21 Aug 2026 09:57:47 +0800</pubDate>
+      <guid>http://localhost:1313/posts/post000014/</guid>
+      <description>&lt;h1 id=&#34;一-前言&#34;&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;哎。实在是太闲了。所以我又把&lt;code&gt;MASM&lt;/code&gt;汇编捡起来了。&lt;br&gt;
+可以说我三分钟热度吧。学&lt;code&gt;STL&lt;/code&gt;也学一半就跑了。&lt;br&gt;
+写了个输出&lt;code&gt;0-32767&lt;/code&gt;整数的函数。简单说说。&lt;/p&gt;
+&lt;h1 id=&#34;二-正文&#34;&gt;二 正文&lt;/h1&gt;
+&lt;p&gt;这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进&lt;code&gt;AX&lt;/code&gt;了。&lt;br&gt;
+首先我们写出&lt;code&gt;c++&lt;/code&gt;的代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; num &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10086&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; numstr[&lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt;(num &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        numstr[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;0&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        num &lt;span style=&#34;color:#f92672&#34;&gt;/=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;; &lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;i){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(numstr[i] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cout &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; numstr[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;大概就这样。下面来解释一下为什么这么写。&lt;br&gt;
+&lt;code&gt;21H&lt;/code&gt;号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是&lt;code&gt;02H&lt;/code&gt;号功能，我们采取这种方案。&lt;br&gt;
+而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如&lt;code&gt;10086&lt;/code&gt;如果直接取余输出，会输出&lt;code&gt;68001&lt;/code&gt;这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。&lt;br&gt;
+大体思路定下来了我们可以开始尝试写代码。&lt;br&gt;
+首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义&lt;code&gt;PRINTINTEGER&lt;/code&gt;方法，开始写代码。&lt;br&gt;
+汇编中，除法是这样算的：把被除数放在&lt;code&gt;AX&lt;/code&gt;里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用&lt;code&gt;BX&lt;/code&gt;寄存器存放除数&lt;code&gt;10&lt;/code&gt;。而除完的商放在&lt;code&gt;AX&lt;/code&gt;中，余数放在&lt;code&gt;DX&lt;/code&gt;中。&lt;br&gt;
+按照这个原理，我们可以写出除法循环的代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-armasm&#34; data-lang=&#34;armasm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    LEA &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;SI&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;NUMSTR&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    MOV &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;BX&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DIVISION:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DIV &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;BX&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ADD &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;DL&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;30H&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    MOV &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;[SI]&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;DL&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DEC &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;SI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    CMP &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;AX&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    JA &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;DIVISION&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;逐行分析一下，&lt;code&gt;LEA SI, NUMSTR + 4&lt;/code&gt;就是把&lt;code&gt;SI&lt;/code&gt;指向了&lt;code&gt;NUMSTR&lt;/code&gt;数组的末尾（因为我们要倒序存储）。&lt;br&gt;
+下面的&lt;code&gt;ADD DL, 30H&lt;/code&gt;是加了&lt;code&gt;&#39;0&#39;&lt;/code&gt;这个偏移量，因为输出字符要对应&lt;code&gt;ASCII&lt;/code&gt;码表。&lt;br&gt;
+接着&lt;code&gt;MOV [SI], DL&lt;/code&gt;是把余数加&lt;code&gt;&#39;0&#39;&lt;/code&gt;以后的结果放进数组，方便后续输出。&lt;br&gt;
+下一步&lt;code&gt;DEC SI&lt;/code&gt;就是自减，把下标往前挪。&lt;br&gt;
+接着比较一下商&lt;code&gt;AX&lt;/code&gt;和&lt;code&gt;0&lt;/code&gt;的大小，如果大于&lt;code&gt;0&lt;/code&gt;就继续循环，否则进行打印。&lt;br&gt;
+接着我们来写打印的代码。这个也简单。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>小型STL开发日志 allocator(3)</title>
+      <link>http://localhost:1313/posts/post000013/</link>
+      <pubDate>Tue, 18 Aug 2026 18:49:11 +0800</pubDate>
+      <guid>http://localhost:1313/posts/post000013/</guid>
+      <description>&lt;h1 id=&#34;一-前言&#34;&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;今天给内存池的内容都写完了，然后把&lt;code&gt;allocator&lt;/code&gt;改成了适配内存池的版本，大概是能用了。等我写容器慢慢测试吧。&lt;br&gt;
+其实已经有在写&lt;code&gt;vector&lt;/code&gt;了，不过其实就是把之前实现过的那个&lt;code&gt;vector&lt;/code&gt;改改拿过来用。&lt;br&gt;
+废话不多说，直接开始正文。&lt;/p&gt;
+&lt;h1 id=&#34;二-正文&#34;&gt;二 正文&lt;/h1&gt;
+&lt;h2 id=&#34;1-内存池剩余部分优化与allocator的适配&#34;&gt;(1) 内存池剩余部分优化与&lt;code&gt;allocator&lt;/code&gt;的适配&lt;/h2&gt;
+&lt;h3 id=&#34;1-碎片内存管理&#34;&gt;&amp;lt;1&amp;gt; 碎片内存管理&lt;/h3&gt;
+&lt;p&gt;上一篇我们提到了，当可用空间&lt;code&gt;available&lt;/code&gt;小于需分配的内存大小&lt;code&gt;block_size&lt;/code&gt;时，我们需要对破碎的内存块进行管理。&lt;br&gt;
+由于我只是想简单实现内存池的功能，所以管理的方法挺简单的，就是把剩余的内存全部切成以对齐粒度为大小的块接到链表上，再把剩下的那一小丢丢内存丢掉不要，开辟新的内存池来分配内存。&lt;br&gt;
+下面举个例子说：当前内存池剩余&lt;code&gt;30&lt;/code&gt;字节的内存，但是用户申请了&lt;code&gt;32&lt;/code&gt;字节，我们就得给这&lt;code&gt;30&lt;/code&gt;字节尽可能地切块，通过计算我们发现可以切出来&lt;code&gt;3&lt;/code&gt;块以对齐粒度&lt;code&gt;8&lt;/code&gt;为大小的内存，接到&lt;code&gt;free_lists[0]&lt;/code&gt;上面，剩下的6字节小内存直接丢弃开销不算大，可以接受。&lt;br&gt;
+而碎片管理完成以后，我们需要开辟新内存；开辟新内存时，我们还得考虑一个问题，就是开辟的池子大小。这里我们也采取简单粗暴的方案：&lt;br&gt;
+首先我们要在类内定义一个常量和一个变量，分别是&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;和&lt;code&gt;next_pool_size&lt;/code&gt;。此处我遇到了一个很逆天的问题，下个二级标题讲，我们先在此处简单提一下解决方案：使用&lt;code&gt;c++17&lt;/code&gt;及更高标准直接用&lt;code&gt;static inline constexpr&lt;/code&gt;来声明&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;就好，如果像我一样还在用&lt;code&gt;c++11&lt;/code&gt;那对不起了，要么把&lt;code&gt;std::min&lt;/code&gt;（或&lt;code&gt;std::max&lt;/code&gt;）换成三目运算符或&lt;code&gt;if&lt;/code&gt;语句，要么把常量改成函数调用，如&lt;code&gt;std::size_t get_max_pool_size() {return 1 &amp;lt;&amp;lt; 20;}&lt;/code&gt;这样的函数。&lt;br&gt;
+我们将&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;作为内存池最大申请的大小（防止堆爆炸），&lt;code&gt;next_pool_size&lt;/code&gt;作为记录下个池子大小的变量，&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;我们令它等于&lt;code&gt;1MB&lt;/code&gt;，即&lt;code&gt;1 &amp;lt;&amp;lt; 20&lt;/code&gt;，而&lt;code&gt;next_pool_size&lt;/code&gt;我们给他初始化为&lt;code&gt;4096&lt;/code&gt;，后面的值随内存分配而变化。&lt;br&gt;
+回到开辟池子的逻辑，先计算一个&lt;code&gt;need_size&lt;/code&gt;，其值为&lt;code&gt;block_size * 32&lt;/code&gt;（这里是为了在切出&lt;code&gt;20&lt;/code&gt;块之后再留出一块空闲空间，所以采用&lt;code&gt;32&lt;/code&gt;这个数字），接着再求出&lt;code&gt;request&lt;/code&gt;，分两步求，第一步求出&lt;code&gt;need_size&lt;/code&gt;和&lt;code&gt;next_pool_size&lt;/code&gt;中较大值，第二步求出&lt;code&gt;request&lt;/code&gt;和&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;  中的较小值，防止内存申请过大导致堆爆炸。然后我们就可以用&lt;code&gt;::operator new&lt;/code&gt;来申请一块大小为&lt;code&gt;request&lt;/code&gt;的内存，作为新的内存池。接下来，我们来切池子，切20块出来并且接到链表上，这块的逻辑就搞完了。&lt;/p&gt;
+&lt;h3 id=&#34;2-互斥锁防止线程问题&#34;&gt;&amp;lt;2&amp;gt; 互斥锁防止线程问题&lt;/h3&gt;
+&lt;p&gt;这里没什么好说的，用&lt;code&gt;std::lock_guard&lt;/code&gt;锁一下&lt;code&gt;std::mutex&lt;/code&gt;就行了。&lt;/p&gt;
+&lt;h3 id=&#34;3-allocator的适配&#34;&gt;&amp;lt;3&amp;gt; &lt;code&gt;allocator&lt;/code&gt;的适配&lt;/h3&gt;
+&lt;p&gt;在&lt;code&gt;allocator&lt;/code&gt;一侧，我们需要针对&lt;code&gt;allocate&lt;/code&gt;和&lt;code&gt;deallocate&lt;/code&gt;做针对内存池的适配。首先我们来实现一个迈耶单例（这个下面会讲），说人话就是声明一个内存池，这个内存池是在&lt;code&gt;MemoryPool&amp;amp; get_pool()&lt;/code&gt;这样一个私有方法中定义的，同时加了&lt;code&gt;static&lt;/code&gt;修饰符，此时这个池子作为一个迈耶单例可以被同类型的各个&lt;code&gt;allocator&lt;/code&gt;访问。&lt;br&gt;
+有了池子我们开始改&lt;code&gt;allocator&lt;/code&gt;，原来我们使用&lt;code&gt;::operator new&lt;/code&gt;，现在我们改成&lt;code&gt;get_pool().allocate&lt;/code&gt;来分配，内存大小参数填&lt;code&gt;n * sizeof(T)&lt;/code&gt;（因为内存池处针对字节进行分配，而&lt;code&gt;allocator&lt;/code&gt;只关注元素个数）。&lt;br&gt;
+而&lt;code&gt;deallocate&lt;/code&gt;也差不多，调用&lt;code&gt;get_pool().deallocate&lt;/code&gt;，大小也填&lt;code&gt;n * sizeof(T)&lt;/code&gt;。&lt;br&gt;
+至于&lt;code&gt;construct&lt;/code&gt;和&lt;code&gt;destroy&lt;/code&gt;不用改，它们不涉及内存的申请和收回，只涉及构造和析构。&lt;br&gt;
+这样整体的结构就写好了。&lt;/p&gt;
+&lt;h2 id=&#34;2-语法知识&#34;&gt;(2) 语法知识&lt;/h2&gt;
+&lt;h3 id=&#34;1-odr问题&#34;&gt;&amp;lt;1&amp;gt; ODR问题&lt;/h3&gt;
+&lt;p&gt;这个简直是太阴了，是写&lt;code&gt;MAX_POOL_SIZE&lt;/code&gt;那里出了问题。&lt;br&gt;
+简单来说，一个经过&lt;code&gt;static constexpr&lt;/code&gt;修饰的量，不能被&lt;code&gt;ODR&lt;/code&gt;使用，在我们的代码中就是因为&lt;code&gt;std::min&lt;/code&gt;产生了常引用而出现问题。&lt;br&gt;
+在我使用的&lt;code&gt;c++11&lt;/code&gt;标准中，并没有良好的语法糖来解决这个问题，所以我只能使用定义一个方法的方式来代替常量。而大肥鱼跟我说，&lt;code&gt;c++17&lt;/code&gt;标准中可以使用&lt;code&gt;static inline constexpr&lt;/code&gt;来避免该问题，内联变量无需外部定义。&lt;/p&gt;
+&lt;h3 id=&#34;2-迈耶单例&#34;&gt;&amp;lt;2&amp;gt; 迈耶单例&lt;/h3&gt;
+&lt;p&gt;这个是&lt;code&gt;Scott Meyers&lt;/code&gt;大神提出的用法，所以叫迈耶单例。&lt;br&gt;
+实际上它是利用了&lt;code&gt;c++&lt;/code&gt;的一个特性，就是类方法内的静态局部变量只会在第一次执行到方法时会被初始化，剩下的调用都只会返回这个已经被初始化的变量的引用。&lt;/p&gt;
+&lt;h1 id=&#34;三-后记&#34;&gt;三 后记&lt;/h1&gt;
+&lt;p&gt;关于内存池和&lt;code&gt;allocator&lt;/code&gt;暂时就开发到这里，有基础功能和作为学习够用的优化就好了，工业级的内存池和&lt;code&gt;allocator&lt;/code&gt;还有诸多特性，比如内存池的各种统计工具，高并发性和其它一些内容，再比如&lt;code&gt;allocator&lt;/code&gt;的&lt;code&gt;allocate_at_least&lt;/code&gt;还有&lt;code&gt;rebind&lt;/code&gt;之类的内容，我暂时不去学了。&lt;br&gt;
+真是一场酣畅淋漓的底层大学习。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>小型STL开发日志 allocator(2)</title>
       <link>http://localhost:1313/posts/post000012/</link>

@@ -128,6 +128,27 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">高中导数压轴极值点偏移问题学习
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一 前言 最近懒得写项目了。快开学了没心情。于是学了点数学缓解缓解。
+之前从别处顺来了本24年的必刷题集合函数专题版，里面找了道题做，顺便学了极值点偏移的基本思路。
+二 正文 (1) 极值点偏移问题是什么 一个函数不一定长成关于某根直线$x = m$对称的样子，它更有可能是“偏”向某一侧的，可能是左侧“胖”一些，可能是右侧“胖”一些，严格来说，当我们给定$f(x_1) = f(x_2) = y_0$（$x_1$与$x_2$在某极值点的最近两侧）时，$\frac{x_1&#43;x_2}{2}$处取不到极值，也就是不满足对称性。而极值点偏移问题就是针对这种现象提出的一些证明问题，下面说说其基本思路。
+(2) 极值点偏移问题的基本思路 首先我们有一个函数$f(x)$，先对其进行单调性分析，得到其极值点以及单调区间，方便下面分析。
+假设我们要对一极值点$x_0$进行极值点偏移问题的分析，我们构造函数：$F(x) = f(x) - f(2x_0 - x)$，也就是得到函数上关于直线$x = x_0$对称的两处函数值的差。此处的技巧是等量代换，通过判断$F(x)$的符号，可以判断出$f(x)$与$f(2x_0 - x)$的大小关系，例如我们代入$x_1$，并证明出$F(x_1)&gt;0$，就说明$f(x_1) &gt; f(2x_0 - x_1)$，此时等量代换，代换为$f(x_2) &gt; f(2x_0 - x_1)$，再根据单调性去括号，移项，就得到了$x_1 &#43; x_2$与$2x_0$的大小关系，极值点偏移问题也就解决了。那么如何判断$F(x)$的符号呢？这里需要对$F(x)$进行求导判断单调性，然后根据单调性判断$F(x_0)$与$F(x)$的大小关系，由于$F(x_0) = 0$，所以判断出上述关系就是确定了$F(x)$的符号。
+光说理论太抽象，下面拿一道题仔细讲讲。
+(3) 极值点偏移问题的例题 题目：已知函数$f(x) = ax^2 &#43; (a-2)x = \ln{x} (a \in \mathbb{R})$
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-08-26 19:19:13 +0800 CST'>August 26, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 高中导数压轴极值点偏移问题学习" href="http://localhost:1313/posts/post000015/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">汇编学习(1)
     </h2>
   </header>
@@ -136,7 +157,6 @@
 可以说我三分钟热度吧。学STL也学一半就跑了。
 写了个输出0-32767整数的函数。简单说说。
 二 正文 这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。
-例如说我们把数字10086放进AX寄存器，接下来我们要思考具体的执行逻辑。
 首先我们写出c&#43;&#43;的代码：
 int num = 10086; char numstr[5] = {0}; int i = 4; while(num &gt; 0){ numstr[i] = i % 10 &#43; &#39;0&#39;; num /= 10; --i; } for(int i = 0; i &lt; 5; &#43;&#43;i){ if(numstr[i] == 0) continue; cout &lt;&lt; numstr[i]; } 大概就这样。下面来解释一下为什么这么写。
 21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。
@@ -450,25 +470,6 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
 
 <span title='2026-07-20 16:54:03 +0800 CST'>July 20, 2026</span></footer>
   <a class="entry-link" aria-label="post link to 4k模拟器开发日志(4)" href="http://localhost:1313/posts/post000006/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">4k模拟器开发日志(3)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>孩子们，今天我也是工作量超标了。我居然有劲头给hold的渲染以及判定全都写好。
-到头来也没有认真读osu源码，还是自己想的居多，虽然也问ai参考了一下逻辑，但是全是自己写的代码，无ai成分。
-具体实现逻辑其实并不难，渲染的话，复制平铺这一点我想到了，但是尾部的裁剪我是没考虑到，所以尝试实现了；在判定时轨道底部会有蒙版造出来吃掉的感觉，也实现出来了。
-判定的话，也是加了一些奇奇怪怪的bool值给他做出来了。其实也不算太复杂。
-今天可是给我累死了，先这样吧。
-</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-07-19 21:29:11 +0800 CST'>July 19, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(3)" href="http://localhost:1313/posts/post000005/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

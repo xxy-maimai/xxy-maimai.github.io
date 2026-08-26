@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>高中导数压轴极值点偏移问题学习 | XxyBlog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一 前言
+最近懒得写项目了。快开学了没心情。于是学了点数学缓解缓解。
+之前从别处顺来了本24年的必刷题集合函数专题版，里面找了道题做，顺便学了极值点偏移的基本思路。
+二 正文
+(1) 极值点偏移问题是什么
+一个函数不一定长成关于某根直线$x = m$对称的样子，它更有可能是“偏”向某一侧的，可能是左侧“胖”一些，可能是右侧“胖”一些，严格来说，当我们给定$f(x_1) = f(x_2) = y_0$（$x_1$与$x_2$在某极值点的最近两侧）时，$\frac{x_1&#43;x_2}{2}$处取不到极值，也就是不满足对称性。而极值点偏移问题就是针对这种现象提出的一些证明问题，下面说说其基本思路。
+(2) 极值点偏移问题的基本思路
+首先我们有一个函数$f(x)$，先对其进行单调性分析，得到其极值点以及单调区间，方便下面分析。
+假设我们要对一极值点$x_0$进行极值点偏移问题的分析，我们构造函数：$F(x) = f(x) - f(2x_0 - x)$，也就是得到函数上关于直线$x = x_0$对称的两处函数值的差。此处的技巧是等量代换，通过判断$F(x)$的符号，可以判断出$f(x)$与$f(2x_0 - x)$的大小关系，例如我们代入$x_1$，并证明出$F(x_1)&gt;0$，就说明$f(x_1) &gt; f(2x_0 - x_1)$，此时等量代换，代换为$f(x_2) &gt; f(2x_0 - x_1)$，再根据单调性去括号，移项，就得到了$x_1 &#43; x_2$与$2x_0$的大小关系，极值点偏移问题也就解决了。
+那么如何判断$F(x)$的符号呢？这里需要对$F(x)$进行求导判断单调性，然后根据单调性判断$F(x_0)$与$F(x)$的大小关系，由于$F(x_0) = 0$，所以判断出上述关系就是确定了$F(x)$的符号。
+光说理论太抽象，下面拿一道题仔细讲讲。
+(3) 极值点偏移问题的例题
+题目：已知函数$f(x) = ax^2 &#43; (a-2)x - \ln{x} (a \in \mathbb{R})$.
+$(1)$讨论$f(x)$的单调性；
+$(2)$若$f(x)$有两个零点$x_1$，$x_2$，证明：$x_1 &#43; x_2 &gt; \frac{2}{a}$.
+来看第一问。
+先明确定义域：函数中有个$\ln{x}$，这约束了定义域为$(0,&#43;\infty)$。对其求导得到：$f&#39;(x) = \frac{(2x&#43;1)(ax-1)}{x}$。由于$x &gt; 0$恒成立，故对于导函数符号的判断只需针对分子进行分析。同样的，有$2x &#43; 1 &gt; 0$恒成立，故对于导函数符号的判断只需对$ax - 1$进行判断。
+当$a &gt; 0$时，对于增区间有$f&#39;(x) &gt; 0$，等价为$ax - 1 &gt; 0$,解得$x &gt; \frac{1}{a}$。减区间同理，因此我们得到结论：当$a &gt; 0$时，$f(x)$在$(0, \frac{1}{a})$上单调递减，在$(\frac{1}{a}, &#43;\infty)$上单调递增。
+当$a \leq 0$时，$ax - 1 &lt; 0$恒成立，故$f(x)$在$(0, &#43;\infty)$上单调递减。
+接着看第二问。
+先把$a &lt; 0$的情况讨论出来，这个结论是显然的，因为$x_1$，$x_2 \in (0, &#43;\infty)$，故$x_1 &#43; x_2 &gt; 0$恒成立，而$\frac{1}{a} &lt; 0$，则命题显然成立。
+再进行真正的极值点偏移问题分析，也就是分析$a &gt; 0$的情况。
+根据上文的理论，我们可以构造函数$F(x) = f(x) - f(\frac{2}{a} - x)$，整理后得到$F(x) = 2ax &#43; \ln({\frac{2}{ax} - 1}) - 2$，求导得到$F&#39;(x) = 2a - \frac{2}{(2-ax)x}$，我们可以知道对于$F(x)$，其定义域需要满足$x &gt; 0$以及$\frac{2}{a} - x &gt; 0$，即$0 &lt; x &lt; \frac{2}{a}$，那么$F&#39;(x)$的定义域也是$(0, \frac{2}{a})$。我们要分析$F(x)$的单调性，即判断$F&#39;(x)$的符号，我们可以判断出，$(2-ax)x &gt; 0$是恒成立的，而由基本不等式，$(2-ax)x \leq \frac{1}{a} \cdot ({\frac{2-ax&#43;ax}{2}})^2 = \frac{1}{a}$，当且仅当$x=\frac{1}{a}$时取等。这样把这坨含自变量$x$的部分分析完，剩下的部分多倒腾几次就可以得出$F&#39;(x) \leq 0$恒成立，也就是$F(x)$在定义域内单调递减。
+我们令$x_1 &lt; \frac{1}{a} &lt; x_2$，那么根据单调性，$F(x_1) &gt; F(\frac{1}{a}) = 0$，所以$f(x_1) &gt; f(\frac{2}{a} - x_1)$。接着等量代换，$f(x_2) &gt; f(\frac{2}{a} - x_1)$。可以判断，$\frac{2}{a} - x_1 &gt; \frac{1}{a}$，那么两者都在极值点右侧，可以去括号，上面第一问判断出右侧是单调递增的，因此直接去括号，$x_2 &gt; \frac{2}{a} - x_1$，最后移项，$x_1 &#43; x_2 &gt; \frac{2}{a}$，证毕。
+这样我们就通过一道极值点偏移问题的例题大概了解了解题思路。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/post000015/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/post000015/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js" integrity="sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="XxyBlog (Alt + H)">XxyBlog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      高中导数压轴极值点偏移问题学习
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-08-26 19:19:13 +0800 CST'>August 26, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><h1 id="一-前言">一 前言<a hidden class="anchor" aria-hidden="true" href="#一-前言">#</a></h1>
+<p>最近懒得写项目了。快开学了没心情。于是学了点数学缓解缓解。<br>
+之前从别处顺来了本24年的必刷题集合函数专题版，里面找了道题做，顺便学了极值点偏移的基本思路。</p>
+<h1 id="二-正文">二 正文<a hidden class="anchor" aria-hidden="true" href="#二-正文">#</a></h1>
+<h2 id="1-极值点偏移问题是什么">(1) 极值点偏移问题是什么<a hidden class="anchor" aria-hidden="true" href="#1-极值点偏移问题是什么">#</a></h2>
+<p>一个函数不一定长成关于某根直线$x = m$对称的样子，它更有可能是“偏”向某一侧的，可能是左侧“胖”一些，可能是右侧“胖”一些，严格来说，当我们给定$f(x_1) = f(x_2) = y_0$（$x_1$与$x_2$在某极值点的最近两侧）时，$\frac{x_1+x_2}{2}$处取不到极值，也就是不满足对称性。而极值点偏移问题就是针对这种现象提出的一些证明问题，下面说说其基本思路。</p>
+<h2 id="2-极值点偏移问题的基本思路">(2) 极值点偏移问题的基本思路<a hidden class="anchor" aria-hidden="true" href="#2-极值点偏移问题的基本思路">#</a></h2>
+<p>首先我们有一个函数$f(x)$，先对其进行单调性分析，得到其极值点以及单调区间，方便下面分析。<br>
+假设我们要对一极值点$x_0$进行极值点偏移问题的分析，我们构造函数：$F(x) = f(x) - f(2x_0 - x)$，也就是得到函数上关于直线$x = x_0$对称的两处函数值的差。此处的技巧是等量代换，通过判断$F(x)$的符号，可以判断出$f(x)$与$f(2x_0 - x)$的大小关系，例如我们代入$x_1$，并证明出$F(x_1)>0$，就说明$f(x_1) > f(2x_0 - x_1)$，此时等量代换，代换为$f(x_2) > f(2x_0 - x_1)$，再根据单调性去括号，移项，就得到了$x_1 + x_2$与$2x_0$的大小关系，极值点偏移问题也就解决了。<br>
+那么如何判断$F(x)$的符号呢？这里需要对$F(x)$进行求导判断单调性，然后根据单调性判断$F(x_0)$与$F(x)$的大小关系，由于$F(x_0) = 0$，所以判断出上述关系就是确定了$F(x)$的符号。<br>
+光说理论太抽象，下面拿一道题仔细讲讲。</p>
+<h2 id="3-极值点偏移问题的例题">(3) 极值点偏移问题的例题<a hidden class="anchor" aria-hidden="true" href="#3-极值点偏移问题的例题">#</a></h2>
+<p>题目：已知函数$f(x) = ax^2 + (a-2)x - \ln{x} (a \in \mathbb{R})$.<br>
+$(1)$讨论$f(x)$的单调性；<br>
+$(2)$若$f(x)$有两个零点$x_1$，$x_2$，证明：$x_1 + x_2 > \frac{2}{a}$.
+来看第一问。<br>
+先明确定义域：函数中有个$\ln{x}$，这约束了定义域为$(0,+\infty)$。对其求导得到：$f'(x) = \frac{(2x+1)(ax-1)}{x}$。由于$x > 0$恒成立，故对于导函数符号的判断只需针对分子进行分析。同样的，有$2x + 1 > 0$恒成立，故对于导函数符号的判断只需对$ax - 1$进行判断。<br>
+当$a > 0$时，对于增区间有$f'(x) > 0$，等价为$ax - 1 > 0$,解得$x > \frac{1}{a}$。减区间同理，因此我们得到结论：当$a > 0$时，$f(x)$在$(0, \frac{1}{a})$上单调递减，在$(\frac{1}{a}, +\infty)$上单调递增。<br>
+当$a \leq 0$时，$ax - 1 < 0$恒成立，故$f(x)$在$(0, +\infty)$上单调递减。<br>
+接着看第二问。<br>
+先把$a < 0$的情况讨论出来，这个结论是显然的，因为$x_1$，$x_2 \in (0, +\infty)$，故$x_1 + x_2 > 0$恒成立，而$\frac{1}{a} < 0$，则命题显然成立。<br>
+再进行真正的极值点偏移问题分析，也就是分析$a > 0$的情况。<br>
+根据上文的理论，我们可以构造函数$F(x) = f(x) - f(\frac{2}{a} - x)$，整理后得到$F(x) = 2ax + \ln({\frac{2}{ax} - 1}) - 2$，求导得到$F'(x) = 2a - \frac{2}{(2-ax)x}$，我们可以知道对于$F(x)$，其定义域需要满足$x > 0$以及$\frac{2}{a} - x > 0$，即$0 < x < \frac{2}{a}$，那么$F'(x)$的定义域也是$(0, \frac{2}{a})$。我们要分析$F(x)$的单调性，即判断$F'(x)$的符号，我们可以判断出，$(2-ax)x > 0$是恒成立的，而由基本不等式，$(2-ax)x \leq \frac{1}{a} \cdot ({\frac{2-ax+ax}{2}})^2 = \frac{1}{a}$，当且仅当$x=\frac{1}{a}$时取等。这样把这坨含自变量$x$的部分分析完，剩下的部分多倒腾几次就可以得出$F'(x) \leq 0$恒成立，也就是$F(x)$在定义域内单调递减。<br>
+我们令$x_1 < \frac{1}{a} < x_2$，那么根据单调性，$F(x_1) > F(\frac{1}{a}) = 0$，所以$f(x_1) > f(\frac{2}{a} - x_1)$。接着等量代换，$f(x_2) > f(\frac{2}{a} - x_1)$。可以判断，$\frac{2}{a} - x_1 > \frac{1}{a}$，那么两者都在极值点右侧，可以去括号，上面第一问判断出右侧是单调递增的，因此直接去括号，$x_2 > \frac{2}{a} - x_1$，最后移项，$x_1 + x_2 > \frac{2}{a}$，证毕。<br>
+这样我们就通过一道极值点偏移问题的例题大概了解了解题思路。</p>
+<h2 id="三-后记">三 后记<a hidden class="anchor" aria-hidden="true" href="#三-后记">#</a></h2>
+<p>要开学了。唉。我的暑假就这么结束了。虽然很充实，但还是很舍不得。学校真的是个吸人精力的地方。真的不想回去。但是不回去又不行。允许我碎碎念几句吧。<br>
+这种题型倒是挺有意思的，把几何直观上的哪一边“胖”的问题转化为了代数上可证明的命题。还有什么隐零点，必要性探路之类的问题，以后再学。开学还得学解析几何乱算呢。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">XxyBlog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

@@ -6,8 +6,26 @@
     <description>Recent content in Posts on XxyBlog</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 21 Aug 2026 09:57:47 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 26 Aug 2026 19:19:13 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>高中导数压轴极值点偏移问题学习</title>
+      <link>http://localhost:1313/posts/post000015/</link>
+      <pubDate>Wed, 26 Aug 2026 19:19:13 +0800</pubDate>
+      <guid>http://localhost:1313/posts/post000015/</guid>
+      <description>&lt;h1 id=&#34;一-前言&#34;&gt;一 前言&lt;/h1&gt;
+&lt;p&gt;最近懒得写项目了。快开学了没心情。于是学了点数学缓解缓解。&lt;br&gt;
+之前从别处顺来了本24年的必刷题集合函数专题版，里面找了道题做，顺便学了极值点偏移的基本思路。&lt;/p&gt;
+&lt;h1 id=&#34;二-正文&#34;&gt;二 正文&lt;/h1&gt;
+&lt;h2 id=&#34;1-极值点偏移问题是什么&#34;&gt;(1) 极值点偏移问题是什么&lt;/h2&gt;
+&lt;p&gt;一个函数不一定长成关于某根直线$x = m$对称的样子，它更有可能是“偏”向某一侧的，可能是左侧“胖”一些，可能是右侧“胖”一些，严格来说，当我们给定$f(x_1) = f(x_2) = y_0$（$x_1$与$x_2$在某极值点的最近两侧）时，$\frac{x_1+x_2}{2}$处取不到极值，也就是不满足对称性。而极值点偏移问题就是针对这种现象提出的一些证明问题，下面说说其基本思路。&lt;/p&gt;
+&lt;h2 id=&#34;2-极值点偏移问题的基本思路&#34;&gt;(2) 极值点偏移问题的基本思路&lt;/h2&gt;
+&lt;p&gt;首先我们有一个函数$f(x)$，先对其进行单调性分析，得到其极值点以及单调区间，方便下面分析。&lt;br&gt;
+假设我们要对一极值点$x_0$进行极值点偏移问题的分析，我们构造函数：$F(x) = f(x) - f(2x_0 - x)$，也就是得到函数上关于直线$x = x_0$对称的两处函数值的差。此处的技巧是等量代换，通过判断$F(x)$的符号，可以判断出$f(x)$与$f(2x_0 - x)$的大小关系，例如我们代入$x_1$，并证明出$F(x_1)&gt;0$，就说明$f(x_1) &gt; f(2x_0 - x_1)$，此时等量代换，代换为$f(x_2) &gt; f(2x_0 - x_1)$，再根据单调性去括号，移项，就得到了$x_1 + x_2$与$2x_0$的大小关系，极值点偏移问题也就解决了。那么如何判断$F(x)$的符号呢？这里需要对$F(x)$进行求导判断单调性，然后根据单调性判断$F(x_0)$与$F(x)$的大小关系，由于$F(x_0) = 0$，所以判断出上述关系就是确定了$F(x)$的符号。&lt;br&gt;
+光说理论太抽象，下面拿一道题仔细讲讲。&lt;/p&gt;
+&lt;h2 id=&#34;3-极值点偏移问题的例题&#34;&gt;(3) 极值点偏移问题的例题&lt;/h2&gt;
+&lt;p&gt;题目：已知函数$f(x) = ax^2 + (a-2)x = \ln{x} (a \in \mathbb{R})$&lt;/p&gt;</description>
+    </item>
     <item>
       <title>汇编学习(1)</title>
       <link>http://localhost:1313/posts/post000014/</link>
@@ -19,7 +37,6 @@
 写了个输出&lt;code&gt;0-32767&lt;/code&gt;整数的函数。简单说说。&lt;/p&gt;
 &lt;h1 id=&#34;二-正文&#34;&gt;二 正文&lt;/h1&gt;
 &lt;p&gt;这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进&lt;code&gt;AX&lt;/code&gt;了。&lt;br&gt;
-例如说我们把数字&lt;code&gt;10086&lt;/code&gt;放进&lt;code&gt;AX&lt;/code&gt;寄存器，接下来我们要思考具体的执行逻辑。&lt;br&gt;
 首先我们写出&lt;code&gt;c++&lt;/code&gt;的代码：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; num &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10086&lt;/span&gt;;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; numstr[&lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;};

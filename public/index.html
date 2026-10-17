@@ -159,6 +159,28 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Minecraft数电研究(1)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一 前言 好久没写博客了，上了高二实在是太忙了，没啥时间搞爱好。code啥的更是被搁置，没时间写大工程。
+不过游戏倒是一直在玩。。。也有点浪费时间的意味。
+闲话少说，今天考完试放假有时间瞎搞，就去mc玩了玩数电，自己捅咕出来了一个十分丑陋的加法器。下面简单说说怎么搞出来的。
+二 正文 首先我们要知道异或可以写成与或非的基本表达式。这里我经过114514秒深度思考，推出了这个玩意： $$ A \oplus B = \overline{(AB)}(A &#43; B) $$ 这样把与或非三个门堆来堆去，我们得到了一个异或门，如图所示：
+图中红色部分为与门，橙色部分为或门，黄色部分为进位标志。
+接着我们需要把它改成竖版的异或门，以适配加法器的需求。改装后的异或门像这样： 这样我们就获得了一个半加器。为什么是半加器而不是全加器呢，因为我们没有把进位纳入运算。要把进位纳入运算，我们可以把进位标志和下一位的运算结果进行一次异或（此处异或门采用最初建造的横向异或门），再把这样算出来的结果去和下一位的进位标志进行或运算，经过一系列改装、复制以后，我们获得了最终版加法器： 完结撒花。
+三 后记 其实我不会布线，完全是乱堆。不过对我来说也是意义重大的，第一次纯靠自己搓出来这玩意了。
+下次更新不知道还要等到啥时候。就这样吧。
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-16 20:47:33 +0800 CST'>October 16, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to Minecraft数电研究(1)" href="http://localhost:1313/posts/minecraft%E6%95%B0%E7%94%B5%E7%A0%94%E7%A9%B61/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">高中导数压轴极值点偏移问题学习
     </h2>
   </header>
@@ -494,25 +516,6 @@ erase相对简单，它不用考虑扩容问题，只需要判断empty() || pos 
 
 <span title='2026-07-28 09:17:44 +0800 CST'>July 28, 2026</span></footer>
   <a class="entry-link" aria-label="post link to 对vector的简单实现" href="http://localhost:1313/posts/post000007/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">4k模拟器开发日志(4)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>天啊，今天我居然又有精神写这个东西，而且我还给写完了。
-今天修了点bug，然后加了字符串解析，以及优化了一些其他的东西。
-字符串解析的话，以&#34;&amp;“字符开头的均为元数据，即偏移、bpm以及拍号；tap以单独数字表示，hold以数字&#43;h&#43;持续拍号&#43;冒号&#43;持续时值表示，逗号分隔，加号表示多押，这些都很好写，比我去年写simai语法解析简单多了。
-顺便学习了一波json解析，也是很简单，阅读设置文件用到了。
-这样的话这个项目大概就完成了，先这样吧。
-</p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-07-20 16:54:03 +0800 CST'>July 20, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 4k模拟器开发日志(4)" href="http://localhost:1313/posts/post000006/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

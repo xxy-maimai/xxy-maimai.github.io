@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>排卡系统开发日志(1) | XxyBlog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一 前言
+由于我实在想做点东西但又不知道做什么，我的一个sb朋友给我提了个主意，就是做一个街机排卡系统。
+目前我对这个系统的设想很简单，就是做一个前后端搭配的应用，后端负责提供排卡数据，前端供用户使用。
+后端使用c&#43;&#43; &#43; drogon开发，drogon是一个不错的框架，在c&#43;&#43;17及更高标准下编码运行。
+前端当然就可以随便开发了，只要具备访问网络的功能就都可以，目前作为简单项目先搞windows端，使用winform开发。
+功能不多，有增删查机厅，排队、出队和回到队尾等等功能。
+目前c&#43;&#43;后端的内容开发的差不多了，可以再完善完善，接下来可以搞前端。
+二 学到的知识
+(1) 网络编程基本思路
+这可以算是我第二次做网络编程，第一次是写了个简单chatroom，用socket实现，原理也不复杂，主要是明白了socket的通信过程。
+而这次则是真正做出一个http服务器，有诸多RESTful API可以调用。
+注册handler的过程，可以说是我学到的精华。
+首先是RESTful API的思想，这个东西我确实是第一次听说，但是它实际上就是常说的“增删改查”四种操作的集合。
+服务端最常见的四种请求也就是这四种了，所以我们要设计api应对这些请求。
+而前端访问这些api时，获取到一串数据（这个项目获取到的都是JSON字符串），再进行数据处理，实现相应的功能。
+注册handler时需要往里塞一个函数作为参数，是真正要实现的功能。
+这个函数的参数列表也有讲究。首先要放一个const HttpRequestPtr&amp; req作为接受请求内容的变量，然后需要一个std::function&lt;void (const HttpResponse&amp; resp)&gt;&amp;&amp; callback，此处resp作为存储相应内容的变量，callback是回调函数，在handler函数中要被调用。
+关于这一块内容，很多我不明白的地方（比如为什么没有给出callback的具体定义，但是它也能执行回调的功能）的答案都藏在drogon库里面，所以我暂时也懒得深究了。
+handler函数体里面需要进行业务操作，最后一定要callback一下，不然服务器等不到回调就卡死了（其实粗略、不严谨地理解，回调大概就是返回一个值）。
+注册api完毕以后就可以开始监听了。
+大体的思路就是这样。
+(2) 许多语法特性
+&lt;1&gt; std::optional的应用
+这个东西以前我确实没接触过，我对c&#43;&#43;11的很多特性甚至都不太了解，更别提std::optional这种c&#43;&#43;17的内容了。
+简单来说，它就是解决“当失败时，返回nullptr不安全”的问题。（当然此处nullptr可以换成其他的东西，这里举个例子）
+std::optional是一个模板类，例如我写一个函数：std::optional&lt;std::string&gt; func(){}，在里面定义一个std::optional&lt;std::string&gt; opt，然后下面查找某个东西，查找成功时写return opt，失败则写return std::nullopt，此时假如成功了，就会返回一个正常的字符串，失败时会返回std::nullopt，而这个std::nullopt就是特地指“失败”含义的一个返回值。
+如果没有std::optional，我们可能会写：return &quot;not found&quot;或者别的什么东西，再或者我们在定义函数时会写std::string* func(){}，失败时返回nullptr，但是这两种方案都不够优雅，都有安全问题。有了新标准，我们还是不要这么做的好。
+它对于增删改查这种操作十分友好，因为经常会遇到失败、冲突等等问题，调用数据类方法增删改查，返回时直接获得一个std::nullopt，就可以判断失败，还没有安全问题，在handler中优雅处理，岂不美哉。
+&lt;2&gt; 线程安全问题
+线程安全的话，我前面做chatroom其实遇到过，就是对于异步的读写操作，线程之间可能有冲突，这里需要用线程锁给他锁起来防止数据紊乱。
+这个项目中，使用std::shared_mutex作为线程锁，读数据时使用std::shared_lock进行保护，写数据时使用std::unique_lock进行保护。
+这一点要说的其实不多，注意到异步线程导致的数据读写冲突问题就可以了。
+&lt;3&gt; std::function的使用
+顾名思义，std::function是用于存储可复制的可调用对象的容器。说人话，它是存函数（方法）的。
+它的创建方式大概是：std::function&lt;typename (args1, args2, ...)&gt; func，其中typename代表函数返回值，(args1, args2)作为函数参数列表。
+这个东西在这个项目里主要是帮助解耦的，没有太多要提的地方，只是觉得这个确实很好用。
+&lt;4&gt; jsoncpp的使用
+这个玩意应该是c&#43;&#43;中专门处理json的普遍使用库了。
+它用起来还蛮方便的，比如我要创建一个json数组没必要非得在声明时就写清楚，直接Json::Value arr，后面append()直接自动搞成数组类型了。
+这个主要是在前后端通信的时候使用，也没有太多要说的。但是真的好用我靠。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.9db5b6284d04d503dab402f2ead0888d121b8aafdafd2a9707d1ec72e6ff0bc8.css" integrity="sha256-nbW2KE0E1QPatALy6tCIjRIbiq/a/SqXB9Hscub/C8g=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/%E6%8E%92%E5%8D%A1%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%97%A5%E5%BF%971/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js" integrity="sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="XxyBlog (Alt + H)">XxyBlog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      排卡系统开发日志(1)
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-08-12 20:35:38 +0800 CST'>August 12, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><h1 id="一-前言">一 前言<a hidden class="anchor" aria-hidden="true" href="#一-前言">#</a></h1>
+<p>由于我实在想做点东西但又不知道做什么，我的一个sb朋友给我提了个主意，就是做一个街机排卡系统。<br>
+目前我对这个系统的设想很简单，就是做一个前后端搭配的应用，后端负责提供排卡数据，前端供用户使用。<br>
+后端使用<code>c++ + drogon</code>开发，<code>drogon</code>是一个不错的框架，在<code>c++17</code>及更高标准下编码运行。<br>
+前端当然就可以随便开发了，只要具备访问网络的功能就都可以，目前作为简单项目先搞<code>windows</code>端，使用<code>winform</code>开发。<br>
+功能不多，有增删查机厅，排队、出队和回到队尾等等功能。<br>
+目前<code>c++</code>后端的内容开发的差不多了，可以再完善完善，接下来可以搞前端。</p>
+<h1 id="二-学到的知识">二 学到的知识<a hidden class="anchor" aria-hidden="true" href="#二-学到的知识">#</a></h1>
+<h2 id="1-网络编程基本思路">(1) 网络编程基本思路<a hidden class="anchor" aria-hidden="true" href="#1-网络编程基本思路">#</a></h2>
+<p>这可以算是我第二次做网络编程，第一次是写了个简单<code>chatroom</code>，用<code>socket</code>实现，原理也不复杂，主要是明白了<code>socket</code>的通信过程。<br>
+而这次则是真正做出一个<code>http</code>服务器，有诸多<code>RESTful API</code>可以调用。<br>
+注册<code>handler</code>的过程，可以说是我学到的精华。<br>
+首先是<code>RESTful API</code>的思想，这个东西我确实是第一次听说，但是它实际上就是常说的“增删改查”四种操作的集合。<br>
+服务端最常见的四种请求也就是这四种了，所以我们要设计<code>api</code>应对这些请求。<br>
+而前端访问这些<code>api</code>时，获取到一串数据（这个项目获取到的都是<code>JSON</code>字符串），再进行数据处理，实现相应的功能。<br>
+注册<code>handler</code>时需要往里塞一个函数作为参数，是真正要实现的功能。<br>
+这个函数的参数列表也有讲究。首先要放一个<code>const HttpRequestPtr&amp; req</code>作为接受请求内容的变量，然后需要一个<code>std::function&lt;void (const HttpResponse&amp; resp)&gt;&amp;&amp; callback</code>，此处<code>resp</code>作为存储相应内容的变量，<code>callback</code>是回调函数，在<code>handler</code>函数中要被调用。<br>
+关于这一块内容，很多我不明白的地方（比如为什么没有给出<code>callback</code>的具体定义，但是它也能执行回调的功能）的答案都藏在<code>drogon</code>库里面，所以我暂时也懒得深究了。<br>
+<code>handler函数体</code>里面需要进行业务操作，最后一定要<code>callback</code>一下，不然服务器等不到回调就卡死了（其实粗略、不严谨地理解，回调大概就是返回一个值）。<br>
+注册<code>api</code>完毕以后就可以开始监听了。<br>
+大体的思路就是这样。</p>
+<h2 id="2-许多语法特性">(2) 许多语法特性<a hidden class="anchor" aria-hidden="true" href="#2-许多语法特性">#</a></h2>
+<h3 id="1-stdoptional的应用">&lt;1&gt; std::optional的应用<a hidden class="anchor" aria-hidden="true" href="#1-stdoptional的应用">#</a></h3>
+<p>这个东西以前我确实没接触过，我对c++11的很多特性甚至都不太了解，更别提std::optional这种c++17的内容了。<br>
+简单来说，它就是解决“当失败时，返回nullptr不安全”的问题。（当然此处nullptr可以换成其他的东西，这里举个例子）<br>
+<code>std::optional</code>是一个模板类，例如我写一个函数：<code>std::optional&lt;std::string&gt; func(){}</code>，在里面定义一个<code>std::optional&lt;std::string&gt; opt</code>，然后下面查找某个东西，查找成功时写<code>return opt</code>，失败则写<code>return std::nullopt</code>，此时假如成功了，就会返回一个正常的字符串，失败时会返回<code>std::nullopt</code>，而这个<code>std::nullopt</code>就是特地指“失败”含义的一个返回值。<br>
+如果没有<code>std::optional</code>，我们可能会写：<code>return &quot;not found&quot;</code>或者别的什么东西，再或者我们在定义函数时会写<code>std::string* func(){}</code>，失败时返回<code>nullptr</code>，但是这两种方案都不够优雅，都有安全问题。有了新标准，我们还是不要这么做的好。<br>
+它对于增删改查这种操作十分友好，因为经常会遇到失败、冲突等等问题，调用数据类方法增删改查，返回时直接获得一个<code>std::nullopt</code>，就可以判断失败，还没有安全问题，在<code>handler</code>中优雅处理，岂不美哉。</p>
+<h3 id="2-线程安全问题">&lt;2&gt; 线程安全问题<a hidden class="anchor" aria-hidden="true" href="#2-线程安全问题">#</a></h3>
+<p>线程安全的话，我前面做<code>chatroom</code>其实遇到过，就是对于异步的读写操作，线程之间可能有冲突，这里需要用线程锁给他锁起来防止数据紊乱。<br>
+这个项目中，使用<code>std::shared_mutex</code>作为线程锁，读数据时使用<code>std::shared_lock</code>进行保护，写数据时使用<code>std::unique_lock</code>进行保护。<br>
+这一点要说的其实不多，注意到异步线程导致的数据读写冲突问题就可以了。</p>
+<h3 id="3-stdfunction的使用">&lt;3&gt; std::function的使用<a hidden class="anchor" aria-hidden="true" href="#3-stdfunction的使用">#</a></h3>
+<p>顾名思义，<code>std::function</code>是用于存储可复制的可调用对象的容器。说人话，它是存函数（方法）的。<br>
+它的创建方式大概是：<code>std::function&lt;typename (args1, args2, ...)&gt; func</code>，其中<code>typename</code>代表函数返回值，<code>(args1, args2)</code>作为函数参数列表。<br>
+这个东西在这个项目里主要是帮助解耦的，没有太多要提的地方，只是觉得这个确实很好用。</p>
+<h3 id="4-jsoncpp的使用">&lt;4&gt; jsoncpp的使用<a hidden class="anchor" aria-hidden="true" href="#4-jsoncpp的使用">#</a></h3>
+<p>这个玩意应该是<code>c++</code>中专门处理<code>json</code>的普遍使用库了。
+它用起来还蛮方便的，比如我要创建一个<code>json</code>数组没必要非得在声明时就写清楚，直接<code>Json::Value arr</code>，后面<code>append()</code>直接自动搞成数组类型了。<br>
+这个主要是在前后端通信的时候使用，也没有太多要说的。但是真的好用我靠。</p>
+<h3 id="5-移动语义">&lt;5&gt; 移动语义<a hidden class="anchor" aria-hidden="true" href="#5-移动语义">#</a></h3>
+<p>它出现在<code>handler</code>函数的参数列表中，我们需要把callback的使用权连同内容一并移交给<code>handler</code>函数，所以使用移动语义来传参。<br>
+这个东西和常引用的区别就是一个移交内存管理权，另一个不移交。嗯。好高深。</p>
+<h2 id="3-编码管理上的一些知识以及其他知识">(3) 编码管理上的一些知识（以及其他知识）<a hidden class="anchor" aria-hidden="true" href="#3-编码管理上的一些知识以及其他知识">#</a></h2>
+<p>首先是数据类和api的分离、解耦。<br>
+为了扩大兼容性和增强安全性，解耦是必须的操作。把数据类的增删改查方法在内部写好，即使需要外部使用内部数据也要提供合适的安全的接口，以防数据泄露和结构耦合。<br>
+接着是<code>handler</code>函数固定的套路：先把<code>req</code>中的数据解析出来，再进行业务管理，最后创建<code>resp</code>给他回调回去。<br>
+最后就是为了保证前端解析的简洁，最好把后端的<code>resp</code>全部设置为<code>json</code>类型的<code>resp</code>。</p>
+<h1 id="三-后记">三 后记<a hidden class="anchor" aria-hidden="true" href="#三-后记">#</a></h1>
+<p>唉，又是想到哪写到哪的垃圾文章。只能凑活看看。<br>
+写这个东西确实学到了很多新知识，受益匪浅。希望这样的机会越来越多。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">XxyBlog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

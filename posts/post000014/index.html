@@ -1,0 +1,176 @@
+<!doctype html><html lang=en dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>汇编学习(1) | XxyBlog</title><meta name=keywords content><meta name=description content="一 前言
+哎。实在是太闲了。所以我又把MASM汇编捡起来了。
+可以说我三分钟热度吧。学STL也学一半就跑了。
+写了个输出0-32767整数的函数。简单说说。
+二 正文
+这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。
+首先我们写出c++的代码：
+    int num = 10086;
+    char numstr[5] = {0};
+    int i = 4;
+    while(num > 0){
+        numstr[i] = i % 10 + '0';
+        num /= 10;
+        --i;
+    }
+    for(int i = 0; i < 5; ++i){
+        if(numstr[i] == 0) continue;
+        cout << numstr[i];
+    }
+大概就这样。下面来解释一下为什么这么写。
+21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。
+而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如10086如果直接取余输出，会输出68001这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。
+大体思路定下来了我们可以开始尝试写代码。
+首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义PRINTINTEGER方法，开始写代码。
+汇编中，除法是这样算的：把被除数放在AX里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用BX寄存器存放除数10。而除完的商放在AX中，余数放在DX中。
+按照这个原理，我们可以写出除法循环的代码：
+    LEA SI, NUMSTR + 4
+    MOV BX, 10
+
+    DIVISION:
+    DIV BX
+    ADD DL, 30H
+    MOV [SI], DL
+    DEC SI
+    CMP AX, 0
+    JA DIVISION
+逐行分析一下，LEA SI, NUMSTR + 4就是把SI指向了NUMSTR数组的末尾（因为我们要倒序存储）。
+下面的ADD DL, 30H是加了'0'这个偏移量，因为输出字符要对应ASCII码表。
+接着MOV [SI], DL是把余数加'0'以后的结果放进数组，方便后续输出。
+下一步DEC SI就是自减，把下标往前挪。
+接着比较一下商AX和0的大小，如果大于0就继续循环，否则进行打印。
+接着我们来写打印的代码。这个也简单。"><meta name=author content><link rel=canonical href=https://xxy-maimai.github.io/posts/post000014/><link crossorigin=anonymous href=/assets/css/stylesheet.3845ccb0e7abdf6855bf7c54f3652a16e88da82f95bfdd8f0bb89a83403c6d7b.css integrity="sha256-OEXMsOer32hVv3xU82UqFuiNqC+Vv92PC7iag0A8bXs=" rel="preload stylesheet" as=style><link rel=icon href=https://xxy-maimai.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://xxy-maimai.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://xxy-maimai.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://xxy-maimai.github.io/apple-touch-icon.png><link rel=mask-icon href=https://xxy-maimai.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://xxy-maimai.github.io/posts/post000014/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css integrity=sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js integrity=sha384-Qsn9KnoKISj6dI8g7p1HBlNpVx0I8p1SvlwOldgi3IorMle61nQy4zEahWYtljaz crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}],throwOnError:!1})})</script><meta property="og:url" content="https://xxy-maimai.github.io/posts/post000014/"><meta property="og:site_name" content="XxyBlog"><meta property="og:title" content="汇编学习(1)"><meta property="og:description" content="一 前言 哎。实在是太闲了。所以我又把MASM汇编捡起来了。
+可以说我三分钟热度吧。学STL也学一半就跑了。
+写了个输出0-32767整数的函数。简单说说。
+二 正文 这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。
+首先我们写出c++的代码：
+int num = 10086; char numstr[5] = {0}; int i = 4; while(num > 0){ numstr[i] = i % 10 + '0'; num /= 10; --i; } for(int i = 0; i < 5; ++i){ if(numstr[i] == 0) continue; cout << numstr[i]; } 大概就这样。下面来解释一下为什么这么写。
+21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。
+而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如10086如果直接取余输出，会输出68001这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。
+大体思路定下来了我们可以开始尝试写代码。
+首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义PRINTINTEGER方法，开始写代码。
+汇编中，除法是这样算的：把被除数放在AX里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用BX寄存器存放除数10。而除完的商放在AX中，余数放在DX中。
+按照这个原理，我们可以写出除法循环的代码：
+LEA SI, NUMSTR + 4 MOV BX, 10 DIVISION: DIV BX ADD DL, 30H MOV [SI], DL DEC SI CMP AX, 0 JA DIVISION 逐行分析一下，LEA SI, NUMSTR + 4就是把SI指向了NUMSTR数组的末尾（因为我们要倒序存储）。
+下面的ADD DL, 30H是加了'0'这个偏移量，因为输出字符要对应ASCII码表。
+接着MOV [SI], DL是把余数加'0'以后的结果放进数组，方便后续输出。
+下一步DEC SI就是自减，把下标往前挪。
+接着比较一下商AX和0的大小，如果大于0就继续循环，否则进行打印。
+接着我们来写打印的代码。这个也简单。"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-08-21T09:57:47+08:00"><meta property="article:modified_time" content="2026-08-21T09:57:47+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="汇编学习(1)"><meta name=twitter:description content="一 前言 哎。实在是太闲了。所以我又把MASM汇编捡起来了。
+可以说我三分钟热度吧。学STL也学一半就跑了。
+写了个输出0-32767整数的函数。简单说说。
+二 正文 这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。
+首先我们写出c++的代码：
+int num = 10086; char numstr[5] = {0}; int i = 4; while(num > 0){ numstr[i] = i % 10 + '0'; num /= 10; --i; } for(int i = 0; i < 5; ++i){ if(numstr[i] == 0) continue; cout << numstr[i]; } 大概就这样。下面来解释一下为什么这么写。
+21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。
+而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如10086如果直接取余输出，会输出68001这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。
+大体思路定下来了我们可以开始尝试写代码。
+首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义PRINTINTEGER方法，开始写代码。
+汇编中，除法是这样算的：把被除数放在AX里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用BX寄存器存放除数10。而除完的商放在AX中，余数放在DX中。
+按照这个原理，我们可以写出除法循环的代码：
+LEA SI, NUMSTR + 4 MOV BX, 10 DIVISION: DIV BX ADD DL, 30H MOV [SI], DL DEC SI CMP AX, 0 JA DIVISION 逐行分析一下，LEA SI, NUMSTR + 4就是把SI指向了NUMSTR数组的末尾（因为我们要倒序存储）。
+下面的ADD DL, 30H是加了'0'这个偏移量，因为输出字符要对应ASCII码表。
+接着MOV [SI], DL是把余数加'0'以后的结果放进数组，方便后续输出。
+下一步DEC SI就是自减，把下标往前挪。
+接着比较一下商AX和0的大小，如果大于0就继续循环，否则进行打印。
+接着我们来写打印的代码。这个也简单。"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://xxy-maimai.github.io/posts/"},{"@type":"ListItem","position":2,"name":"汇编学习(1)","item":"https://xxy-maimai.github.io/posts/post000014/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"汇编学习(1)","name":"汇编学习(1)","description":"一 前言 哎。实在是太闲了。所以我又把MASM汇编捡起来了。\n可以说我三分钟热度吧。学STL也学一半就跑了。\n写了个输出0-32767整数的函数。简单说说。\n二 正文 这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。\n首先我们写出c++的代码：\nint num = 10086; char numstr[5] = {0}; int i = 4; while(num \u0026gt; 0){ numstr[i] = i % 10 + \u0026#39;0\u0026#39;; num /= 10; --i; } for(int i = 0; i \u0026lt; 5; ++i){ if(numstr[i] == 0) continue; cout \u0026lt;\u0026lt; numstr[i]; } 大概就这样。下面来解释一下为什么这么写。\n21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。\n而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如10086如果直接取余输出，会输出68001这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。\n大体思路定下来了我们可以开始尝试写代码。\n首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义PRINTINTEGER方法，开始写代码。\n汇编中，除法是这样算的：把被除数放在AX里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用BX寄存器存放除数10。而除完的商放在AX中，余数放在DX中。\n按照这个原理，我们可以写出除法循环的代码：\nLEA SI, NUMSTR + 4 MOV BX, 10 DIVISION: DIV BX ADD DL, 30H MOV [SI], DL DEC SI CMP AX, 0 JA DIVISION 逐行分析一下，LEA SI, NUMSTR + 4就是把SI指向了NUMSTR数组的末尾（因为我们要倒序存储）。\n下面的ADD DL, 30H是加了'0'这个偏移量，因为输出字符要对应ASCII码表。\n接着MOV [SI], DL是把余数加'0'以后的结果放进数组，方便后续输出。\n下一步DEC SI就是自减，把下标往前挪。\n接着比较一下商AX和0的大小，如果大于0就继续循环，否则进行打印。\n接着我们来写打印的代码。这个也简单。\n","keywords":[],"articleBody":"一 前言 哎。实在是太闲了。所以我又把MASM汇编捡起来了。\n可以说我三分钟热度吧。学STL也学一半就跑了。\n写了个输出0-32767整数的函数。简单说说。\n二 正文 这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进AX了。\n首先我们写出c++的代码：\nint num = 10086; char numstr[5] = {0}; int i = 4; while(num \u003e 0){ numstr[i] = i % 10 + '0'; num /= 10; --i; } for(int i = 0; i \u003c 5; ++i){ if(numstr[i] == 0) continue; cout \u003c\u003c numstr[i]; } 大概就这样。下面来解释一下为什么这么写。\n21H号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是02H号功能，我们采取这种方案。\n而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如10086如果直接取余输出，会输出68001这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。\n大体思路定下来了我们可以开始尝试写代码。\n首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义PRINTINTEGER方法，开始写代码。\n汇编中，除法是这样算的：把被除数放在AX里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用BX寄存器存放除数10。而除完的商放在AX中，余数放在DX中。\n按照这个原理，我们可以写出除法循环的代码：\nLEA SI, NUMSTR + 4 MOV BX, 10 DIVISION: DIV BX ADD DL, 30H MOV [SI], DL DEC SI CMP AX, 0 JA DIVISION 逐行分析一下，LEA SI, NUMSTR + 4就是把SI指向了NUMSTR数组的末尾（因为我们要倒序存储）。\n下面的ADD DL, 30H是加了'0'这个偏移量，因为输出字符要对应ASCII码表。\n接着MOV [SI], DL是把余数加'0'以后的结果放进数组，方便后续输出。\n下一步DEC SI就是自减，把下标往前挪。\n接着比较一下商AX和0的大小，如果大于0就继续循环，否则进行打印。\n接着我们来写打印的代码。这个也简单。\nLEA SI, NUMSTR PRINT: CMP [SI], 0 JE CHECK MOV DL, [SI] MOV AH, 02H INT 21H CHECK: INC SI CMP SI, OFFSET NUMSTR + 4 JNA PRINT 这一段也不难分析。首先还是把NUMSTR地址放进SI寄存器。接着进入PRINT循环。\n这里因为位数不确定，我们把数组初始化为0，所以这里先判断这一位是不是0（注意不是'0'），是的话直接跳到CHECK进行下标检查，否则进行输出，很简单的逻辑。\n最后加一个0的特判，如果是0直接输出0不走这些步骤了。\n大体的框架就这样，贴个代码，由于没有系统学习码风很乱：\nASSUME CS:CODE, DS:DATA DATA SEGMENT NUM DW 10086 NUMSTR DB 5 DUP(0) DATA ENDS CODE SEGMENT START: MOV AX, DATA MOV DS, AX MOV AX, NUM CALL PRINTINTEGER MOV AH, 4CH INT 21H PRINTINTEGER PROC CMP AX, 0 JE ZERO JNE NOTZERO ZERO: MOV DL, 30H MOV AH, 02H INT 21H RET NOTZERO: MOV BX, 10 LEA SI, NUMSTR + 4 DIVISION: XOR DX, DX DIV BX ADD DL, 30H MOV [SI], DL DEC SI CMP AX, 0 JA DIVISION LEA SI, NUMSTR PRINT: CMP [SI], 0 JE CHECK MOV DL, [SI] MOV AH, 02H INT 21H CHECK: INC SI CMP SI, OFFSET NUMSTR + 4 JNA PRINT RET PRINTINTEGER ENDP CODE ENDS END START 三 后记 还有几天就开学了，又要回地狱了。祝我好运。\n","wordCount":"248","inLanguage":"en","datePublished":"2026-08-21T09:57:47+08:00","dateModified":"2026-08-21T09:57:47+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://xxy-maimai.github.io/posts/post000014/"},"publisher":{"@type":"Organization","name":"XxyBlog","logo":{"@type":"ImageObject","url":"https://xxy-maimai.github.io/favicon.ico"}}}</script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://xxy-maimai.github.io/ accesskey=h title="XxyBlog (Alt + H)">XxyBlog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu class=menu></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">汇编学习(1)</h1><div class=post-meta><span title='2026-08-21 09:57:47 +0800 +0800'>August 21, 2026</span></div></header><div class="post-content md-content"><h1 id=一-前言>一 前言<a hidden class=anchor aria-hidden=true href=#一-前言>#</a></h1><p>哎。实在是太闲了。所以我又把<code>MASM</code>汇编捡起来了。<br>可以说我三分钟热度吧。学<code>STL</code>也学一半就跑了。<br>写了个输出<code>0-32767</code>整数的函数。简单说说。</p><h1 id=二-正文>二 正文<a hidden class=anchor aria-hidden=true href=#二-正文>#</a></h1><p>这里采用调用函数的方案，而汇编传参一般通过提前扔进寄存器实现，这里因为要算除法所以放进<code>AX</code>了。<br>首先我们写出<code>c++</code>的代码：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span>    <span style=color:#66d9ef>int</span> num <span style=color:#f92672>=</span> <span style=color:#ae81ff>10086</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>char</span> numstr[<span style=color:#ae81ff>5</span>] <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>};
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span>(num <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>        numstr[i] <span style=color:#f92672>=</span> i <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span> <span style=color:#f92672>+</span> <span style=color:#e6db74>&#39;0&#39;</span>;
+</span></span><span style=display:flex><span>        num <span style=color:#f92672>/=</span> <span style=color:#ae81ff>10</span>;
+</span></span><span style=display:flex><span>        <span style=color:#f92672>--</span>i;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span>(<span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5</span>; <span style=color:#f92672>++</span>i){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span>(numstr[i] <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>        cout <span style=color:#f92672>&lt;&lt;</span> numstr[i];
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><p>大概就这样。下面来解释一下为什么这么写。<br><code>21H</code>号中断里并没有直接输出整数的功能，但是有输出单个字符的功能，就是<code>02H</code>号功能，我们采取这种方案。<br>而接下来，我们要考虑一个问题，就是数字在取余时得到的每一位数字实际上是倒着排列的，例如<code>10086</code>如果直接取余输出，会输出<code>68001</code>这种鬼畜玩意。因此我们采取了拿一个数组倒序去存每一位，最后正着输出的方案。<br>大体思路定下来了我们可以开始尝试写代码。<br>首先我们要把取余的每一位存在一个数组里。这个数组我们在数据段声明好。我们定义<code>PRINTINTEGER</code>方法，开始写代码。<br>汇编中，除法是这样算的：把被除数放在<code>AX</code>里面，接着把除数放在任意一个寄存器里（虽然理论上是任意，但是主要还是常用的可以安全随意放数据的那几个），此处我们采用<code>BX</code>寄存器存放除数<code>10</code>。而除完的商放在<code>AX</code>中，余数放在<code>DX</code>中。<br>按照这个原理，我们可以写出除法循环的代码：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-armasm data-lang=armasm><span style=display:flex><span>    LEA <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>NUMSTR</span> <span style=color:#960050;background-color:#1e0010>+</span> <span style=color:#960050;background-color:#1e0010>4</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>BX</span>, <span style=color:#960050;background-color:#1e0010>10</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    DIVISION:
+</span></span><span style=display:flex><span>    DIV <span style=color:#960050;background-color:#1e0010>BX</span>
+</span></span><span style=display:flex><span>    ADD <span style=color:#960050;background-color:#1e0010>DL</span>, <span style=color:#960050;background-color:#1e0010>30H</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>[SI]</span>, <span style=color:#960050;background-color:#1e0010>DL</span>
+</span></span><span style=display:flex><span>    DEC <span style=color:#960050;background-color:#1e0010>SI</span>
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>AX</span>, <span style=color:#960050;background-color:#1e0010>0</span>
+</span></span><span style=display:flex><span>    JA <span style=color:#960050;background-color:#1e0010>DIVISION</span>
+</span></span></code></pre></div><p>逐行分析一下，<code>LEA SI, NUMSTR + 4</code>就是把<code>SI</code>指向了<code>NUMSTR</code>数组的末尾（因为我们要倒序存储）。<br>下面的<code>ADD DL, 30H</code>是加了<code>'0'</code>这个偏移量，因为输出字符要对应<code>ASCII</code>码表。<br>接着<code>MOV [SI], DL</code>是把余数加<code>'0'</code>以后的结果放进数组，方便后续输出。<br>下一步<code>DEC SI</code>就是自减，把下标往前挪。<br>接着比较一下商<code>AX</code>和<code>0</code>的大小，如果大于<code>0</code>就继续循环，否则进行打印。<br>接着我们来写打印的代码。这个也简单。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-armasm data-lang=armasm><span style=display:flex><span>    LEA <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>NUMSTR</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    PRINT:
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>[SI]</span>, <span style=color:#960050;background-color:#1e0010>0</span>
+</span></span><span style=display:flex><span>    JE <span style=color:#960050;background-color:#1e0010>CHECK</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>DL</span>, <span style=color:#960050;background-color:#1e0010>[SI]</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AH</span>, <span style=color:#960050;background-color:#1e0010>02H</span>
+</span></span><span style=display:flex><span>    INT <span style=color:#960050;background-color:#1e0010>21H</span>
+</span></span><span style=display:flex><span>    CHECK:
+</span></span><span style=display:flex><span>    INC <span style=color:#960050;background-color:#1e0010>SI</span>
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>OFFSET</span> <span style=color:#960050;background-color:#1e0010>NUMSTR</span> <span style=color:#960050;background-color:#1e0010>+</span> <span style=color:#960050;background-color:#1e0010>4</span>
+</span></span><span style=display:flex><span>    JNA <span style=color:#960050;background-color:#1e0010>PRINT</span>
+</span></span></code></pre></div><p>这一段也不难分析。首先还是把<code>NUMSTR</code>地址放进<code>SI</code>寄存器。接着进入PRINT循环。<br>这里因为位数不确定，我们把数组初始化为<code>0</code>，所以这里先判断这一位是不是<code>0</code>（注意不是<code>'0'</code>），是的话直接跳到<code>CHECK</code>进行下标检查，否则进行输出，很简单的逻辑。<br>最后加一个<code>0</code>的特判，如果是<code>0</code>直接输出<code>0</code>不走这些步骤了。<br>大体的框架就这样，贴个代码，由于没有系统学习码风很乱：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-armasm data-lang=armasm><span style=display:flex><span>ASSUME <span style=color:#960050;background-color:#1e0010>CS:CODE</span>, <span style=color:#960050;background-color:#1e0010>DS:DATA</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>DATA <span style=color:#960050;background-color:#1e0010>SEGMENT</span>
+</span></span><span style=display:flex><span>    NUM <span style=color:#960050;background-color:#1e0010>DW</span> <span style=color:#960050;background-color:#1e0010>10086</span>
+</span></span><span style=display:flex><span>    NUMSTR <span style=color:#960050;background-color:#1e0010>DB</span> <span style=color:#960050;background-color:#1e0010>5</span> <span style=color:#960050;background-color:#1e0010>DUP(0)</span>
+</span></span><span style=display:flex><span>DATA <span style=color:#960050;background-color:#1e0010>ENDS</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>CODE <span style=color:#960050;background-color:#1e0010>SEGMENT</span>
+</span></span><span style=display:flex><span>START:
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AX</span>, <span style=color:#960050;background-color:#1e0010>DATA</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>DS</span>, <span style=color:#960050;background-color:#1e0010>AX</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AX</span>, <span style=color:#960050;background-color:#1e0010>NUM</span>
+</span></span><span style=display:flex><span>    CALL <span style=color:#960050;background-color:#1e0010>PRINTINTEGER</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AH</span>, <span style=color:#960050;background-color:#1e0010>4CH</span>
+</span></span><span style=display:flex><span>    INT <span style=color:#960050;background-color:#1e0010>21H</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>PRINTINTEGER <span style=color:#960050;background-color:#1e0010>PROC</span>
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>AX</span>, <span style=color:#960050;background-color:#1e0010>0</span>
+</span></span><span style=display:flex><span>    JE <span style=color:#960050;background-color:#1e0010>ZERO</span>
+</span></span><span style=display:flex><span>    JNE <span style=color:#960050;background-color:#1e0010>NOTZERO</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ZERO:
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>DL</span>, <span style=color:#960050;background-color:#1e0010>30H</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AH</span>, <span style=color:#960050;background-color:#1e0010>02H</span>
+</span></span><span style=display:flex><span>    INT <span style=color:#960050;background-color:#1e0010>21H</span>
+</span></span><span style=display:flex><span>    RET
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    NOTZERO:
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>BX</span>, <span style=color:#960050;background-color:#1e0010>10</span>
+</span></span><span style=display:flex><span>    LEA <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>NUMSTR</span> <span style=color:#960050;background-color:#1e0010>+</span> <span style=color:#960050;background-color:#1e0010>4</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    DIVISION:
+</span></span><span style=display:flex><span>    XOR <span style=color:#960050;background-color:#1e0010>DX</span>, <span style=color:#960050;background-color:#1e0010>DX</span>
+</span></span><span style=display:flex><span>    DIV <span style=color:#960050;background-color:#1e0010>BX</span>
+</span></span><span style=display:flex><span>    ADD <span style=color:#960050;background-color:#1e0010>DL</span>, <span style=color:#960050;background-color:#1e0010>30H</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>[SI]</span>, <span style=color:#960050;background-color:#1e0010>DL</span>
+</span></span><span style=display:flex><span>    DEC <span style=color:#960050;background-color:#1e0010>SI</span>
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>AX</span>, <span style=color:#960050;background-color:#1e0010>0</span>
+</span></span><span style=display:flex><span>    JA <span style=color:#960050;background-color:#1e0010>DIVISION</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    LEA <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>NUMSTR</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    PRINT:
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>[SI]</span>, <span style=color:#960050;background-color:#1e0010>0</span>
+</span></span><span style=display:flex><span>    JE <span style=color:#960050;background-color:#1e0010>CHECK</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>DL</span>, <span style=color:#960050;background-color:#1e0010>[SI]</span>
+</span></span><span style=display:flex><span>    MOV <span style=color:#960050;background-color:#1e0010>AH</span>, <span style=color:#960050;background-color:#1e0010>02H</span>
+</span></span><span style=display:flex><span>    INT <span style=color:#960050;background-color:#1e0010>21H</span>
+</span></span><span style=display:flex><span>    CHECK:
+</span></span><span style=display:flex><span>    INC <span style=color:#960050;background-color:#1e0010>SI</span>
+</span></span><span style=display:flex><span>    CMP <span style=color:#960050;background-color:#1e0010>SI</span>, <span style=color:#960050;background-color:#1e0010>OFFSET</span> <span style=color:#960050;background-color:#1e0010>NUMSTR</span> <span style=color:#960050;background-color:#1e0010>+</span> <span style=color:#960050;background-color:#1e0010>4</span>
+</span></span><span style=display:flex><span>    JNA <span style=color:#960050;background-color:#1e0010>PRINT</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    RET
+</span></span><span style=display:flex><span>PRINTINTEGER <span style=color:#960050;background-color:#1e0010>ENDP</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>CODE <span style=color:#960050;background-color:#1e0010>ENDS</span>
+</span></span><span style=display:flex><span>END <span style=color:#960050;background-color:#1e0010>START</span>
+</span></span></code></pre></div><h1 id=三-后记>三 后记<a hidden class=anchor aria-hidden=true href=#三-后记>#</a></h1><p>还有几天就开学了，又要回地狱了。祝我好运。</p></div><footer class=post-footer><ul class=post-tags></ul></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://xxy-maimai.github.io/>XxyBlog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script></body></html>
